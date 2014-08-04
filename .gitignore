@@ -1,0 +1,82 @@
+# Ignore files build by Ruby on Rails
+.DS_Store
+.bundle/
+.zeus.sock
+.tm_properties
+custom_plan.rb
+zeus.json
+.eprj
+.gem/
+.rdebug_hist/
+.rdebug_hist
+.rvmrc
+.sass-cache/
+db/*.sqlite3
+db/*.sqlite3-journal
+db/schema.rb
+config/database.yml
+log/
+solr/data/*
+tags
+tmp/
+vendor/cache/
+
+# Ignore better_errors configuration
+config/initializers/better_errors.rb
+
+# Ignore rbuby environment settings
+.rbenv-gemsets
+.ruby-version
+.jrubyrc
+
+# Ignore images that paperclip / dragonfly stored
+public/attachments/**/*
+public/system/dragonfly**/*
+
+# Ignore vim backup files
+.*~
+*~
+
+# Ignore NetBeans project files
+nbproject/
+
+# Ignore Jetbrains project files
+*.iml
+*.ipr
+.idea/
+
+# Ignore Redcar project files
+.redcar/
+
+# Ignore core dumps
+core
+
+# Ignore thumbnails created by windows
+Thumbs.db
+
+# Ignore files build by Visual Studio
+#*.obj
+#*.exe
+#*.pdb
+#*.user
+#*.aps
+#*.pch
+#*.vspscc
+#*_i.c
+#*_p.c
+#*.ncb
+#*.suo
+#*.tlb
+#*.tlh
+#*.bak
+#*.cache
+#*.ilk
+#*.log
+#[Bb]in
+#[Dd]ebug*/
+#*.lib
+#*.sbr
+#obj/
+#[Rr]elease*/
+#_ReSharper*/
+#[Tt]est[Rr]esult*

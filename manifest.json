@@ -1,0 +1,30 @@
+{
+  "manifest_version": 2,
+  "name": "Playr",
+  "description": "Digital signage kiosk app for Chrome for content from playr.biz",
+  "app": {
+    "background": {
+      "scripts": ["javascript/background.js"],
+      "persistent": false
+    }
+  },
+  "version": "0.9.0.1",
+  "author": {
+    "name": "Playr.biz",
+    "email": "support@playr.biz"
+  },
+  "kiosk_enabled": true,
+  "offline_enabled": true,
+  "icons": {
+    "16": "images/playr-icon-16x16.png",
+    "48": "images/playr-icon-48x48.png",
+    "128": "images/playr-icon-128x128.png"
+  },
+  "permissions": [
+    "system.display",
+    "power",
+    "webview",
+    "alwaysOnTopWindows",
+    "storage"
+  ]
+}
