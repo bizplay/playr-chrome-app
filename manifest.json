@@ -8,7 +8,7 @@
       "persistent": false
     }
   },
-  "version": "0.9.1.3",
+  "version": "0.9.8",
   "author": {
     "name": "Playr.biz",
     "email": "support@playr.biz"
@@ -22,10 +22,10 @@
   },
   "permissions": [
     "system.display",
-    "power",
     "webview",
-    "alwaysOnTopWindows",
     "storage",
+    "power",
+    "alwaysOnTopWindows",
     "http://*.playr.biz/",
     "https://*.playr.biz/"
   ]
