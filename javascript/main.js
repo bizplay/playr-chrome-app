@@ -42,7 +42,6 @@ var setPlayerIdCookieAndLoadWebView = function() {
     var player_id = '';
     if (content !== undefined && content !== null
         && content["player_id"] !== null && content["player_id"] !== undefined) {
-      console.log("id: " + content["player_id"].substr(0,8))
       player_id = content["player_id"];
     }
     loadWebView(player_id);
