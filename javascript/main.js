@@ -24,11 +24,11 @@ var showAppInfo = function() {
 
 var setInfoInPage = function(player_id) {
   "use strict"
-  if (player_id !== '') {
-    document.getElementById("info").innerHTML = "id: " + player_id.substr(0,8) + " version: " + getCurrentAppVersion();
-  } else {
-    document.getElementById("info").innerHTML = "id: none version: " + getCurrentAppVersion();
-  }
+  document.getElementById("info").innerHTML = "<p>device id: " + (player_id !== '' ? player_id.substr(0,8) : "none") +
+                                              "</p><p>app id: " + appId() +
+                                              "</p><p>app version: " + appVersion() +
+                                              "</p><p>browser version: " + browserVersion() +
+                                              "</p><p>OS: " + osVersion() + "</p>";
 };
 
 var getCurrentAppVersion = function() {
