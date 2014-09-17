@@ -15,7 +15,7 @@ body {
 }
 #logo {
   display: block;
-  margin: 10px auto 10px auto;
+  margin: 30px auto 20px auto;
   width: 520px;
   height: 197px;
   background: black;
@@ -30,7 +30,7 @@ body {
 #info {
   position: absolute;
   left: 40px;
-  top: 150px;
+  top: 200px;
   color: #777;
   font-size: 14px;
 }
