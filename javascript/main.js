@@ -31,9 +31,30 @@ var setInfoInPage = function(player_id) {
                                               "</p><p>OS: " + osVersion() + "</p>";
 };
 
-var getCurrentAppVersion = function() {
+var osVersion = function() {
   "use strict"
-    return chrome.runtime.getManifest().version;
+  var result = "";
+  var os_info_parts = window.navigator.userAgent.match( /\((.*?)\)/ )[1].split(';');
+  for (var i = 0; i < os_info_parts.length; i++) {
+    result += os_info_parts[i] + (i === os_info_parts.length ? "" : " ");
+  }
+  console.log("OS Version: " + result);
+  return result;
+};
+
+var browserVersion = function() {
+  "use strict"
+  return window.navigator.appVersion.match(/Chrome\/(.*?) /)[1];
+};
+
+var appId = function() {
+  "use strict"
+  return chrome.runtime.id
+};
+
+var appVersion = function() {
+  "use strict"
+  return chrome.runtime.getManifest().version;
 };
 
 var setPlayerIdCookieAndLoadWebView = function() {
@@ -69,6 +90,7 @@ var loadPlayer = function() {
 
 var gotoPlayer = function() {
   "use strict"
+  console.log("internet connection established, loading digital signage content");
   // only webview is visible, set target url
   document.getElementById("info").style.display = "none";
   document.getElementById("ajax_loader").style.display = "none";
@@ -80,6 +102,7 @@ var gotoPlayer = function() {
 
 var retryLoading = function() {
   "use strict"
+  console.log("internet connection not found, starting countdown before retry");
   // set timer and show retry message
   var countdown = countdownDuration;
   document.getElementById("retry_message").style.display = "block";
