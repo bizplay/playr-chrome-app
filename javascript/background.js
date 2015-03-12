@@ -19,12 +19,11 @@ function init() {
       // player_id defined no action required
     }else{
       chrome.storage.local.set({'player_id':getUUID()}, function() {
-        if (chrome.extension.lastError !== undefined) {
-          console.log('init: Error during writing to storage.local: ' + chrome.extension.lastError.message);
+        if (chrome.runtime.lastError !== undefined) {
+          console.log('init: Error during writing to storage.local: ' + chrome.runtime.lastError.message);
         }
       });
-      console.log("init: player_id was not yet defined, starting reload...");
-      chrome.runtime.reload();
+      console.log("init: player_id was not yet defined, has been given UUID");
     }
     openWindow("main.html");
   });
