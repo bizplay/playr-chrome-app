@@ -9,7 +9,7 @@
       "persistent": false
     }
   },
-  "version": "0.9.8.7",
+  "version": "0.9.9.1",
   "author": {
     "name": "Playr.biz",
     "email": "support@playr.biz"
@@ -27,7 +27,12 @@
     "storage",
     "power",
     "alwaysOnTopWindows",
-    "http://*.playr.biz/",
-    "https://*.playr.biz/"
+    "http://*.playr.biz/", "https://*.playr.biz/",
+    "http://*.youtube.com/", "https://*.youtube.com/",
+    "http://youtu.be/","http://y2u.be/",
+    "http://*.vimeo.com/", "https://*.vimeo.com/",
+    "http://*.yahooapis.com/","https://*.yahooapis.com/",
+    "http://*.bizplay.com/", "https://*.bizplay.com/",
+    "http://*.buienradar.com/","https://*.buienradar.nl/"
   ]
 }
