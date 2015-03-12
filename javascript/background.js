@@ -4,7 +4,7 @@ getUUID = function() {
   "use strict"
   // generate a type 4 (random) UUID
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);});
-}
+};
 
 
 function init() {
@@ -13,31 +13,37 @@ function init() {
   chrome.power.requestKeepAwake("display");
 
   determineOperatingSystem();
+  // make  sure a player id is present, note: async call
   chrome.storage.local.get('player_id',function(content){
     if(('player_id' in content)){
       // player_id defined no action required
     }else{
-      chrome.storage.local.set({'player_id':getUUID()});
-      console.log("player_id was not yet defined, starting reload...");
+      chrome.storage.local.set({'player_id':getUUID()}, function() {
+        if (chrome.extension.lastError !== undefined) {
+          console.log('init: Error during writing to storage.local: ' + chrome.extension.lastError.message);
+        }
+      });
+      console.log("init: player_id was not yet defined, starting reload...");
       chrome.runtime.reload();
     }
     openWindow("main.html");
   });
 
   function openWindow(path){
-    chrome.system.display.getInfo(function(display){
-      chrome.app.window.create(path, {
+    chrome.system.display.getInfo(function(displayInfos){
+      var windowOptions = {
         'frame': 'none',
         'id': 'browser',
-        'bounds':{
+        'innerBounds':{
            'left':0,
            'top':0,
-           'width':display[0].bounds.width,
-           'height':display[0].bounds.height
+           'width':displayInfos[0].bounds.width,
+           'height':displayInfos[0].bounds.height
         }
-      },function(window){
-        window.fullscreen();
-        window.onClosed.addListener(windowOnClosed);
+      };
+      chrome.app.window.create(path, windowOptions, function(createdWindow){
+        createdWindow.fullscreen();
+        createdWindow.onClosed.addListener(windowOnClosed);
       });
     });
   }
