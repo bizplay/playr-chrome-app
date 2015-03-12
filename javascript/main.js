@@ -1,5 +1,6 @@
 var tryCountdown = 0;
 var countdownDuration = 10;
+var player_id = '';
 
 document.addEventListener('DOMContentLoaded', function(){
   // set visibility so only spinner and logo show
@@ -13,10 +14,9 @@ document.addEventListener('DOMContentLoaded', function(){
 var showAppInfo = function() {
   "use strict"
   chrome.storage.local.get('player_id',function(content){
-    var player_id = '';
     if (content !== undefined && content !== null
-        && content["player_id"] !== null && content["player_id"] !== undefined) {
-      player_id = content["player_id"];
+        && content.player_id !== null && content.player_id !== undefined) {
+      player_id = content.player_id;
     }
     setInfoInPage(player_id);
   });
@@ -59,21 +59,34 @@ var appVersion = function() {
 
 var setPlayerIdCookieAndLoadWebView = function() {
   "use strict"
-  chrome.storage.local.get('player_id',function(content){
-    var player_id = '';
-    if (content !== undefined && content !== null
-        && content["player_id"] !== null && content["player_id"] !== undefined) {
-      player_id = content["player_id"];
-    }
+  console.log("setPlayerIdCookieAndLoadWebView: about to load WebView [" + currentTime() + "]");
+
+  if (player_id === '') {
+    getPlayerIdAndLoadWebView();
+  } else {
+    console.log("setPlayerIdCookieAndLoadWebView: load WebView with player_id = " + player_id);
     loadWebView(player_id);
-  });
+  }
 };
+
+var getPlayerIdAndLoadWebView = function() {
+  "use strict"
+  chrome.storage.local.get('player_id', function(content){
+    if (content !== undefined && content !== null
+        && content.player_id !== null && content.player_id !== undefined) {
+      player_id = content.player_id;
+    }
+    console.log("getPlayerIdAndLoadWebView: load WebView with player_id = " + player_id + " [" + currentTime() + "]");
+    loadWebView(player_id);
+  });  
+}
 
 var loadWebView = function(player_id) {
   "use strict"
+  console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
   document.getElementById("browser").setAttribute('style', 'width:' + window.innerWidth + 'px;height:'+window.innerHeight+'px;');
+  console.log("loadWebView: reload browser element");
   document.getElementById("browser").setAttribute('src', 'http://play.playr.biz/?player_id=' + player_id);
-  document.getElementById("browser").reload();
 };
 
 var loadPlayer = function() {
@@ -90,19 +103,20 @@ var loadPlayer = function() {
 
 var gotoPlayer = function() {
   "use strict"
-  console.log("internet connection established, loading digital signage content");
-  // only webview is visible, set target url
+  console.log("gotoPlayer: internet connection established, loading webview");
+  // make only webview visible
   document.getElementById("info").style.display = "none";
   document.getElementById("ajax_loader").style.display = "none";
   document.getElementById("retry_message").style.display = "none";
   document.getElementById("loaderImage").style.display = "none";
   document.getElementById("browser").style.display = "block";
+  // set cookie target and go to target url
   setPlayerIdCookieAndLoadWebView();
 };
 
 var retryLoading = function() {
   "use strict"
-  console.log("internet connection not found, starting countdown before retry");
+  console.log("retryLoading: internet connection not found, starting countdown before retry");
   // set timer and show retry message
   var countdown = countdownDuration;
   document.getElementById("retry_message").style.display = "block";
@@ -153,4 +167,23 @@ var tryLoadingImage = function(success_callback, fail_callback) {
     // do actual request
     xhr.send();
   }
+};
+
+var currentTime = function() {
+  "use strict";
+  var now = new Date();
+  return zeropad(now.getHours(),2) + ":" + zeropad(now.getMinutes(),2) + ":" + zeropad(now.getSeconds(),2) + "." + zeropad(now.getMilliseconds(),3);
+}
+
+var zeropad = function(number, places){
+  "use strict";
+  // used this 'clever' solution because it is fast, see http://jsperf.com/left-zero-pad
+  var aNumber = Math.abs(number);
+        var zeros = Math.max(0, places - Math.floor(aNumber).toString().length );
+        var padding = Math.pow(10,zeros).toString().substr(1);
+        if( number < 0 ) {
+                padding = '-' + padding;
+        }
+
+  return padding + number;
 };
