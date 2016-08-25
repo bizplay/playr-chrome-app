@@ -1,23 +1,22 @@
 var operatingSystem;
 
 getUUID = function() {
-  "use strict"
+  "use strict";
   // generate a type 4 (random) UUID
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);});
 };
 
-
 function init() {
-  "use strict"
-  //don't let computer sleep
+  "use strict";
+  // don't let computer sleep
   chrome.power.requestKeepAwake("display");
 
   determineOperatingSystem();
   // make  sure a player id is present, note: async call
-  chrome.storage.local.get('player_id',function(content){
-    if(('player_id' in content)){
+  chrome.storage.local.get('player_id', function(content){
+    if ('player_id' in content) {
       // player_id defined no action required
-    }else{
+    } else {
       chrome.storage.local.set({'player_id':getUUID()}, function() {
         if (chrome.runtime.lastError !== undefined) {
           console.log('init: Error during writing to storage.local: ' + chrome.runtime.lastError.message);
@@ -46,28 +45,29 @@ function init() {
       });
     });
   }
-};
+}
 
 function windowOnClosed() {
-  "use strict"
-	console.log("window.Onclosed received");
-	chrome.power.releaseKeepAwake();
-};
+  "use strict";
+  console.log("window.Onclosed received");
+  chrome.power.releaseKeepAwake();
+}
 
 function determineOperatingSystem() {
-  "use strict"
+  "use strict";
   chrome.runtime.getPlatformInfo(function(platformInformation) {
-		operatingSystem = platformInformation.os;
+    operatingSystem = platformInformation.os;
     console.log("Operating System: " + operatingSystem);
   });
-};
+}
 
 chrome.runtime.onUpdateAvailable.addListener(function(details) {
-	if (operatingSystem === "cros") {
-		console.log("Update available to version: " + details.version + ". Starting update.");
-		chrome.runtime.reload();
-	} else {
-		console.log("onUpdateAvailable received but not supported on " + operatingSystem);
+  "use strict";
+  if (operatingSystem === "cros") {
+    console.log("Update available to version: " + details.version + ". Starting update.");
+    chrome.runtime.reload();
+  } else {
+    console.log("onUpdateAvailable received but not supported on " + operatingSystem);
   }
 });
 

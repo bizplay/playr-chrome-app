@@ -25,7 +25,7 @@
     "system.display",
     "webview",
     "storage",
-		"unlimitedStorage",
+    "unlimitedStorage",
     "power",
     "alwaysOnTopWindows",
     "http://*.playr.biz/", "https://*.playr.biz/",
