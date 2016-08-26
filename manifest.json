@@ -9,13 +9,15 @@
       "persistent": false
     }
   },
-  "version": "0.9.9.5",
+  "version": "0.9.9.6",
   "author": {
     "name": "Playr.biz",
     "email": "support@playr.biz"
   },
+  "default_locale": "en",
   "kiosk_enabled": true,
   "offline_enabled": true,
+  "minimum_chrome_version": "45",
   "icons": {
     "16": "images/playr-icon-16x16.png",
     "48": "images/playr-icon-48x48.png",
@@ -28,12 +30,22 @@
     "unlimitedStorage",
     "power",
     "alwaysOnTopWindows",
-    "http://*.playr.biz/", "https://*.playr.biz/",
-    "http://*.youtube.com/", "https://*.youtube.com/",
+    "http://www.playr.biz/", "https://www.playr.biz/",
+    "https://s3.amazonaws.com/",
+    "http://www.youtube.com/", "https://www.youtube.com/",
     "http://youtu.be/","http://y2u.be/",
-    "http://*.vimeo.com/", "https://*.vimeo.com/",
+    "http://www.vimeo.com/", "https://www.vimeo.com/",
+    "http://vimeo.com/", "https://vimeo.com/",
     "http://*.yahooapis.com/","https://*.yahooapis.com/",
     "http://*.bizplay.com/", "https://*.bizplay.com/",
     "http://*.buienradar.com/","https://*.buienradar.nl/"
-  ]
+  ],
+  "webview": {
+    "partitions": [
+      {
+        "name": "playr_signage_data",
+        "accessible_resources": ["*.*"]
+      }
+    ]
+  }  
 }
