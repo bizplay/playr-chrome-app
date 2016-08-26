@@ -1,4 +1,4 @@
-var operatingSystem;
+var operatingSystem = '';
 
 getUUID = function() {
   "use strict";
@@ -54,7 +54,7 @@ function windowOnClosed() {
 }
 
 function determineOperatingSystem() {
-  "use strict";
+  // accesses the "global" operatingSystem so do not use "use strict"
   chrome.runtime.getPlatformInfo(function(platformInformation) {
     operatingSystem = platformInformation.os;
     console.log("Operating System: " + operatingSystem);
@@ -62,7 +62,7 @@ function determineOperatingSystem() {
 }
 
 chrome.runtime.onUpdateAvailable.addListener(function(details) {
-  "use strict";
+  // accesses the "global" operatingSystem so do not use "use strict"
   if (operatingSystem === "cros") {
     console.log("Update available to version: " + details.version + ". Starting update.");
     chrome.runtime.reload();
