@@ -4,8 +4,8 @@ var player_id = '';
 
 document.addEventListener('DOMContentLoaded', function(){
   "use strict";
-  // set visibility so only spinner and logo show
   showAppInfo();
+  // set visibility so only spinner and logo show
   document.getElementById("retry_message").style.display = "none";
   document.getElementById("browser").style.display = "none";
   // show spinner and info for a few seconds and then load player webview
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 var showAppInfo = function() {
-  "use strict";
+  // accesses the "global" player_id so do not use "use strict"
   chrome.storage.local.get('player_id',function(content){
     if (content !== undefined && content !== null &&
         content.player_id !== null && content.player_id !== undefined) {
@@ -71,7 +71,7 @@ var setPlayerIdCookieAndLoadWebView = function() {
 };
 
 var getPlayerIdAndLoadWebView = function() {
-  "use strict";
+  // accesses the "global" player_id so do not use "use strict"
   chrome.storage.local.get('player_id', function(content){
     if (content !== undefined && content !== null &&
         content.player_id !== null && content.player_id !== undefined) {
@@ -91,7 +91,7 @@ var loadWebView = function(player_id) {
 };
 
 var loadPlayer = function() {
-  "use strict";
+  // accesses the "global" countdownDuration so do not use "use strict"
   // set visibility of just spinner and logo and set retry time on screen
   document.getElementById("info").style.display = "block";
   document.getElementById("seconds").innerHTML = countdownDuration;
@@ -116,7 +116,7 @@ var gotoPlayer = function() {
 };
 
 var retryLoading = function() {
-  "use strict";
+  // accesses the "global" operatingSystem so do not use "use strict"
   console.log("retryLoading: internet connection not found, starting countdown before retry");
   // set timer and show retry message
   var countdown = countdownDuration;
