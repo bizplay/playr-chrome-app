@@ -142,7 +142,7 @@ var tryLoadingImage = function(success_callback, fail_callback) {
   "use strict";
   // check presence of callback functions
   if (success_callback !== undefined && fail_callback !== undefined) {
-    // request to image at bizplay site has to be done using XMLHttpRequest
+    // the request for an image has to be done using XMLHttpRequest
     // because of the Content Security Policy of Chrome apps; https://developer.chrome.com/apps/contentSecurityPolicy
     // NOTE: the base of the url needs to be declared in the permissions part
     // of the manifest.json
