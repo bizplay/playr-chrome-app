@@ -14,7 +14,6 @@
     "name": "Playr.biz",
     "email": "support@playr.biz"
   },
-  "default_locale": "en",
   "kiosk_enabled": true,
   "offline_enabled": true,
   "minimum_chrome_version": "45",
