@@ -2,14 +2,14 @@
   "manifest_version": 2,
   "name": "Playr",
   "short_name": "Playr",
-  "description": "Digital signage kiosk app for content for Chrome OS",
+  "description": "Digital signage kiosk app for Chrome OS",
   "app": {
     "background": {
       "scripts": ["javascript/background.js"],
       "persistent": false
     }
   },
-  "version": "0.9.9.7",
+  "version": "0.9.9.8",
   "author": {
     "name": "Playr Digital Signage",
     "email": "support@playr.biz"
