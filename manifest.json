@@ -15,7 +15,7 @@
     "email": "support@playr.biz"
   },
   "kiosk_enabled": true,
-  "offline_enabled": true,
+  "offline_enabled": false,
   "minimum_chrome_version": "45",
   "icons": {
     "16": "images/playr-icon-16x16.png",
@@ -30,6 +30,8 @@
     "power",
     "alwaysOnTopWindows",
     "http://www.playr.biz/", "https://www.playr.biz/",
+    "http://ajax.playr.biz/", "https://ajax.playr.biz/",
+    "http://proxy.playr.biz/", "https://proxy.playr.biz/",
     "https://s3.amazonaws.com/",
     "http://www.youtube.com/", "https://www.youtube.com/",
     "http://youtu.be/","http://y2u.be/",
