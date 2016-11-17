@@ -1,8 +1,9 @@
 var operatingSystem = '';
 var architecture = '';
 var naclArchitecture = '';
-var interval = 5*60*1000; // 5 mins in ms
-var aMinute = 60*1000;
+var oneMinute = 60*1000;
+var threeMinutes = 3*60*1000;
+var fiveMinutes  = 5*60*1000;
 var rebootCommand = "1";
 var intervalProcess;
 
@@ -64,7 +65,7 @@ function windowOnClosed() {
   // stop restart check cycle
   clearInterval(intervalProcess);
   // cancel possibly set delayed restart
-  chrome.runtime.restartAfterDelay(-1);
+  chrome.runtime.restartAfterDelay(-1, preventUncheckedErrorMessageWhenErrorIsExpected);
 }
 
 function determineOperatingSystem() {
@@ -94,6 +95,7 @@ function checkRestart() {
               console.log("checkRestart: Restart at: " + (new Date()).toString());
               // Restart the ChromeOS device when the app runs in kiosk mode. Otherwise, it's no-op.
               chrome.runtime.restart();
+              preventUncheckedErrorMessageWhenErrorIsExpected();
             } else {
               // response was not reboot code -> no operation
             }
@@ -112,6 +114,14 @@ function checkRestart() {
   });
 }
 
+function preventUncheckedErrorMessageWhenErrorIsExpected() {
+  if (chrome.runtime.lastError !== undefined) {
+    // to prevent unchecked error messages during tests on
+    // OSes other than ChromeOS or not running in Kiosk mode
+    console.log('preventUncheckedErrorMessageWhenErrorIsExpected: expected error: ' + chrome.runtime.lastError.message);
+  }
+}
+
 chrome.runtime.onUpdateAvailable.addListener(function(details) {
   // accesses the "global" operatingSystem so do not use "use strict"
   if (operatingSystem === "cros") {
@@ -128,7 +138,11 @@ chrome.runtime.onUpdateAvailable.addListener(function(details) {
 });
 
 // TODO use web worker for this if possible
-setTimeout(function() { intervalProcess = setInterval(checkRestart, interval); }, aMinute);
+console.log("Kicking off setInterval with delay: " + oneMinute.toString());
+setTimeout(function() {
+    intervalProcess = setInterval(checkRestart, fiveMinutes);
+    console.log("Repeat checkRestart with interval: " + fiveMinutes.toString() + " intervalProcess: " + intervalProcess.toString());
+  }, oneMinute);
 
 chrome.app.runtime.onLaunched.addListener(init);
 chrome.app.runtime.onRestarted.addListener(init);
