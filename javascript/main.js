@@ -87,7 +87,7 @@ var loadWebView = function(player_id) {
   console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
   document.getElementById("browser").setAttribute('style', 'width:' + window.innerWidth + 'px;height:'+window.innerHeight+'px;');
   console.log("loadWebView: reload browser element");
-  document.getElementById("browser").setAttribute('src', 'http://play.playr.biz/?player_id=' + player_id);
+  document.getElementById("browser").setAttribute('src', 'http://play.playr.biz/?player_id=' + player_id + '&app_version=' + appVersion());
 };
 
 var loadPlayer = function() {
