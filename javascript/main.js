@@ -37,7 +37,7 @@ var osVersion = function() {
   var result = "";
   var os_info_parts = window.navigator.userAgent.match( /\((.*?)\)/ )[1].split(';');
   for (var i = 0; i < os_info_parts.length; i++) {
-    result += os_info_parts[i] + (i === os_info_parts.length ? "" : " ");
+    result += os_info_parts[i] + (i === (os_info_parts.length - 1) ? "" : " ");
   }
   console.log("OS Version: " + result);
   return result;
@@ -161,29 +161,33 @@ var tryLoadingImage = function(success_callback, fail_callback) {
         fail_callback();
       }
     };
-    xhr.onerror = fail_callback;
-    xhr.onabort = fail_callback;
+    xhr.onerror = function () { fail_callback(); };
+    xhr.onabort = function () { fail_callback(); };
 
     // do actual request
     xhr.send();
+  } else {
+    console.log("tryLoadingImage: success_callback and/or fail_callback not defined");
+    document.getElementById("info").innerHTML = "<p><strong>An error occurred, please restart this device.</strong></p>" + document.getElementById("info").innerHTML;
+    document.getElementById("info").style.display = "block";
   }
 };
 
 var currentTime = function() {
   "use strict";
   var now = new Date();
-  return zeropad(now.getHours(),2) + ":" + zeropad(now.getMinutes(),2) + ":" + zeropad(now.getSeconds(),2) + "." + zeropad(now.getMilliseconds(),3);
+  return zeropad(now.getHours(), 2) + ":" + zeropad(now.getMinutes(), 2) + ":" + zeropad(now.getSeconds(), 2) + "." + zeropad(now.getMilliseconds(), 3);
 };
 
 var zeropad = function(number, places){
   "use strict";
   // used this 'clever' solution because it is fast, see http://jsperf.com/left-zero-pad
   var aNumber = Math.abs(number);
-        var zeros = Math.max(0, places - Math.floor(aNumber).toString().length );
-        var padding = Math.pow(10,zeros).toString().substr(1);
-        if( number < 0 ) {
-                padding = '-' + padding;
-        }
+  var zeros = Math.max(0, places - Math.floor(aNumber).toString().length );
+  var padding = Math.pow(10,zeros).toString().substr(1);
+  if( number < 0 ) {
+    padding = '-' + padding;
+  }
 
   return padding + number;
 };
