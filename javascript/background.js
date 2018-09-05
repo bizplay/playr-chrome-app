@@ -7,10 +7,10 @@ var fiveMinutes  = 5*60*1000;
 var rebootCommand = "1";
 var intervalProcess;
 
-getUUID = function() {
+function getUUID() {
   "use strict";
   // generate a type 4 (random) UUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);});
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8; return v.toString(16); });
 };
 
 function init() {
@@ -79,7 +79,7 @@ function determineOperatingSystem() {
 }
 
 function checkRestart() {
-  "use strict";
+  // accesses the "global" rebootCommand so do not use "use strict"
   console.log("checkRestart: Running check at: " + (new Date()).toString());
 
   chrome.storage.local.get('player_id', function(content){
@@ -91,7 +91,7 @@ function checkRestart() {
           if (xhr.status === 200) {
             // JSON.parse does not evaluate scripts (in case of an attackers malicious script).
             var resp = JSON.parse(xhr.responseText);
-            if (resp !== undefined && resp.toString() == rebootCommand) {
+            if (resp !== undefined && resp.toString() === rebootCommand) {
               console.log("checkRestart: Restart at: " + (new Date()).toString());
               // Restart the ChromeOS device when the app runs in kiosk mode. Otherwise, it's no-op.
               chrome.runtime.restart();
@@ -100,10 +100,12 @@ function checkRestart() {
               // response was not reboot code -> no operation
             }
           } else {
+            console.log("checkRestart: xhr.status !== 200");
             // non success HTTP status code -> no operation
           }
         } else {
-          // XML HTTP Request status not ok -> no operation
+          console.log("checkRestart: xhr.readyState !== 4");
+          // XML HTTP Request ready status not ok -> no operation
         }
       };
       xhr.send();
@@ -140,7 +142,7 @@ chrome.runtime.onUpdateAvailable.addListener(function(details) {
 // TODO use web worker for this if possible
 console.log("Kicking off setInterval with delay: " + oneMinute.toString());
 setTimeout(function() {
-    intervalProcess = setInterval(checkRestart, fiveMinutes);
+    intervalProcess = setInterval(function () { checkRestart(); }, fiveMinutes);
     console.log("Repeat checkRestart with interval: " + fiveMinutes.toString() + " intervalProcess: " + intervalProcess.toString());
   }, oneMinute);
 
