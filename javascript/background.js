@@ -8,8 +8,7 @@ var architecture = "";
 var naclArchitecture = "";
 var intervalProcess;
 
-// function getUUID() {
-var getUUID = function () {
+function getUUID() {
   "use strict";
   // generate a type 4 (random) UUID
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) { var r = Math.random()*16|0,v=c=="x"?r:r&0x3|0x8; return v.toString(16); });
@@ -129,6 +128,8 @@ function preventUncheckedErrorMessageWhenErrorIsExpected() {
   }
 }
 
+chrome.app.runtime.onLaunched.addListener(function () { init(); });
+chrome.app.runtime.onRestarted.addListener(function () { init(); });
 chrome.runtime.onUpdateAvailable.addListener(function(details) {
   // accesses the "global" operatingSystem so do not use "use strict"
   if (operatingSystem === "cros") {
@@ -151,6 +152,3 @@ setTimeout(function() {
     intervalProcess = setInterval(function () { checkRestart(); }, fiveMinutes);
     console.log("Repeat checkRestart with interval: " + fiveMinutes.toString() + " intervalProcess: " + intervalProcess.toString());
   }, oneMinute);
-
-chrome.app.runtime.onLaunched.addListener(init);
-chrome.app.runtime.onRestarted.addListener(init);
