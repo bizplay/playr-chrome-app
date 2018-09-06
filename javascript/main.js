@@ -1,41 +1,72 @@
-var tryCountdown = 0;
-var countdownDuration = 10;
-var player_id = '';
+const countdownDuration = 10;
+const oneSecond = 1000;
+const fiveSeconds = 5 * 1000;
+const networkInfoDefault = "No network found";
+const indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
-document.addEventListener('DOMContentLoaded', function(){
+var tryCountdown = 0;
+var player_id = "";
+var networkInfo = networkInfoDefault;
+
+document.addEventListener("DOMContentLoaded", function(){
   "use strict";
   showAppInfo();
   // set visibility so only spinner and logo show
   document.getElementById("retry_message").style.display = "none";
   document.getElementById("browser").style.display = "none";
   // show spinner and info for a few seconds and then load player webview
-  var tmp = setTimeout( function() { loadPlayer(); }, 5000);
+  var tmp = setTimeout(function () { loadPlayer(); }, fiveSeconds);
 });
 
 var showAppInfo = function() {
   // accesses the "global" player_id so do not use "use strict"
-  chrome.storage.local.get('player_id',function(content){
+  chrome.storage.local.get("player_id",function(content){
     if (content !== undefined && content !== null &&
         content.player_id !== null && content.player_id !== undefined) {
       player_id = content.player_id;
+      console.log("showAppInfo: player_id: " + player_id);
     }
-    setInfoInPage(player_id);
+    chrome.system.network.getNetworkInterfaces(function (networkInterfaces) {
+      console.log("showAppInfo: networkInterfaces.length: " + networkInterfaces.length.toString());
+      if (networkInterfaces !== undefined && networkInterfaces.length > 0) {
+        for (var i = 0; i < networkInterfaces.length ; i++) {
+          console.log("showAppInfo: networkInterfaces[" + i.toString() + "].name: " + networkInterfaces[i].name);
+          console.log("showAppInfo: networkInterfaces[" + i.toString() + "].address: " + networkInterfaces[i].address);
+          if (networkInfo === networkInfoDefault) {
+            if (networkInterfaces[i].address !== undefined && networkInterfaces[i].address !== null && networkInterfaces[i].address.length > 0) {
+              networkInfo = "<table><tr><td>" + indent + "</td><td>" + networkInterfaces[i].name + ":</td><td>" + networkInterfaces[i].address + "</td</tr>";
+            }
+          } else {
+            if (networkInterfaces[i].address !== undefined && networkInterfaces[i].address !== null && networkInterfaces[i].address.length > 0) {
+              networkInfo += "<tr><td></td><td>" + networkInterfaces[i].name + ":</td><td>" + networkInterfaces[i].address + "</td>";
+            }
+          }
+        }
+        if (networkInfo !== networkInfoDefault) {
+          networkInfo += "</table>";
+        } else {
+          networkInfo = indent + networkInfo;
+        }
+      }
+      setInfoInPage(player_id, networkInfo);
+    });
   });
 };
 
-var setInfoInPage = function(player_id) {
+var setInfoInPage = function(player_id, networkInfo) {
   "use strict";
-  document.getElementById("info").innerHTML = "<p>device id: " + (player_id !== '' ? player_id.substr(0,8) : "none") +
+  document.getElementById("info").innerHTML = "<p>device id: " + (player_id !== "" ? player_id.substr(0,8) : "none") +
                                               "</p><p>app id: " + appId() +
                                               "</p><p>app version: " + appVersion() +
                                               "</p><p>browser version: " + browserVersion() +
-                                              "</p><p>OS: " + osVersion() + "</p>";
+                                              "</p><p>OS: " + osVersion() + "</p>" +
+                                              "</p><p>Network:<br>" + networkInfo + "</p>";
 };
 
 var osVersion = function() {
   "use strict";
   var result = "";
-  var os_info_parts = window.navigator.userAgent.match( /\((.*?)\)/ )[1].split(';');
+  var os_info_parts = window.navigator.userAgent.match( /\((.*?)\)/ )[1].split(";");
   for (var i = 0; i < os_info_parts.length; i++) {
     result += os_info_parts[i] + (i === (os_info_parts.length - 1) ? "" : " ");
   }
@@ -62,7 +93,7 @@ var setPlayerIdCookieAndLoadWebView = function() {
   "use strict";
   console.log("setPlayerIdCookieAndLoadWebView: about to load WebView [" + currentTime() + "]");
 
-  if (player_id === '') {
+  if (player_id === "") {
     getPlayerIdAndLoadWebView();
   } else {
     console.log("setPlayerIdCookieAndLoadWebView: load WebView with player_id = " + player_id);
@@ -72,7 +103,7 @@ var setPlayerIdCookieAndLoadWebView = function() {
 
 var getPlayerIdAndLoadWebView = function() {
   // accesses the "global" player_id so do not use "use strict"
-  chrome.storage.local.get('player_id', function(content){
+  chrome.storage.local.get("player_id", function(content){
     if (content !== undefined && content !== null &&
         content.player_id !== null && content.player_id !== undefined) {
       player_id = content.player_id;
@@ -85,9 +116,9 @@ var getPlayerIdAndLoadWebView = function() {
 var loadWebView = function(player_id) {
   "use strict";
   console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
-  document.getElementById("browser").setAttribute('style', 'width:' + window.innerWidth + 'px;height:'+window.innerHeight+'px;');
+  document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:"+window.innerHeight+"px;");
   console.log("loadWebView: reload browser element");
-  document.getElementById("browser").setAttribute('src', 'http://play.playr.biz/?player_id=' + player_id + '&app_version=' + appVersion());
+  document.getElementById("browser").setAttribute("src", "http://play.playr.biz/?player_id=" + player_id + "&app_version=" + appVersion());
 };
 
 var loadPlayer = function() {
@@ -135,7 +166,7 @@ var retryLoading = function() {
       clearInterval(tryCountdown);
       loadPlayer();
     }
-  }, 1000);
+  }, oneSecond);
 };
 
 var tryLoadingImage = function(success_callback, fail_callback) {
@@ -148,8 +179,8 @@ var tryLoadingImage = function(success_callback, fail_callback) {
     // of the manifest.json
     var url = "http://www.playr.biz/playr_loader_test_image.png?" + escape(new Date());
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'blob';
+    xhr.open("GET", url, true);
+    xhr.responseType = "blob";
     xhr.onload = function (e) {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
@@ -161,15 +192,21 @@ var tryLoadingImage = function(success_callback, fail_callback) {
         fail_callback();
       }
     };
-    xhr.onerror = function () { fail_callback(); };
-    xhr.onabort = function () { fail_callback(); };
+    xhr.onerror = function () {
+      document.getElementById("info").innerHTML = "<p>An error occurred on connecting to the server, please restart this device if these errors continue.</p>" + document.getElementById("info").innerHTML;
+      fail_callback();
+    };
+    xhr.onabort = function () {
+      document.getElementById("info").innerHTML = "<p>Connection to the server was aborted, please restart this device if these errors continue.</p>" + document.getElementById("info").innerHTML;
+      fail_callback();
+    };
 
     // do actual request
     xhr.send();
   } else {
     console.log("tryLoadingImage: success_callback and/or fail_callback not defined");
-    document.getElementById("info").innerHTML = "<p><strong>An error occurred, please restart this device.</strong></p>" + document.getElementById("info").innerHTML;
-    document.getElementById("info").style.display = "block";
+    // document.getElementById("info").innerHTML = "<p><strong>An error occurred, please restart this device.</strong></p>" + document.getElementById("info").innerHTML;
+    // document.getElementById("info").style.display = "block";
   }
 };
 
@@ -186,7 +223,7 @@ var zeropad = function(number, places){
   var zeros = Math.max(0, places - Math.floor(aNumber).toString().length );
   var padding = Math.pow(10,zeros).toString().substr(1);
   if( number < 0 ) {
-    padding = '-' + padding;
+    padding = "-" + padding;
   }
 
   return padding + number;
