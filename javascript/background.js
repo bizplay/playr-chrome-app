@@ -1,53 +1,57 @@
-var operatingSystem = '';
-var architecture = '';
-var naclArchitecture = '';
-var oneMinute = 60*1000;
-var threeMinutes = 3*60*1000;
-var fiveMinutes  = 5*60*1000;
-var rebootCommand = "1";
+const oneMinute = 60 * 1000;
+const threeMinutes = 3 * 60 * 1000;
+const fiveMinutes = 5 * 60 * 1000;
+const rebootCommand = "1";
+
+var operatingSystem = "";
+var architecture = "";
+var naclArchitecture = "";
 var intervalProcess;
 
-function getUUID() {
+// function getUUID() {
+var getUUID = function () {
   "use strict";
   // generate a type 4 (random) UUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8; return v.toString(16); });
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) { var r = Math.random()*16|0,v=c=="x"?r:r&0x3|0x8; return v.toString(16); });
 };
 
 function init() {
-  "use strict";
+  // accesses the "global" variables so do not use "use strict"
+  console.log("init: start");
   // don't let computer sleep
   chrome.power.requestKeepAwake("display");
 
   // OS info is used by onUpdateAvailable no problem if this is set async
   determineOperatingSystem();
   // make  sure a player id is present, note: async call
-  chrome.storage.local.get('player_id', function(content){
-    if ('player_id' in content) {
+  chrome.storage.local.get("player_id", function(content){
+    if ("player_id" in content) {
       // player_id defined no additional actions required
+      console.log("init: player_id: " + content.player_id);
       openWindow("main.html");
     } else {
-      chrome.storage.local.set({'player_id':getUUID()}, function() {
+      chrome.storage.local.set({"player_id": getUUID()}, function() {
         if (chrome.runtime.lastError !== undefined) {
-          console.log('init: Error during writing to storage.local: ' + chrome.runtime.lastError.message);
+          console.log("init: Error during writing to storage.local: " + chrome.runtime.lastError.message);
           openWindow("error.html");
         } else {
+          console.log("init: player_id was not yet defined, setting UUID sucessful (no error reported)");
           openWindow("main.html");
         }
       });
-      console.log("init: player_id was not yet defined, setting UUID");
     }
   });
 
   function openWindow(path){
     chrome.system.display.getInfo(function(displayInfos){
       var windowOptions = {
-        'frame': 'none',
-        'id': 'browser',
-        'innerBounds':{
-           'left':0,
-           'top':0,
-           'width':displayInfos[0].bounds.width,
-           'height':displayInfos[0].bounds.height
+        "frame": "none",
+        "id": "browser",
+        "innerBounds": {
+           "left": 0,
+           "top": 0,
+           "width": displayInfos[0].bounds.width,
+           "height": displayInfos[0].bounds.height
         }
       };
       chrome.app.window.create(path, windowOptions, function(createdWindow){
@@ -69,7 +73,7 @@ function windowOnClosed() {
 }
 
 function determineOperatingSystem() {
-  // accesses the "global" operatingSystem so do not use "use strict"
+  // accesses the "global" variables so do not use "use strict"
   chrome.runtime.getPlatformInfo(function(platformInformation) {
     operatingSystem = platformInformation.os;
     architecture = platformInformation.arch;
@@ -79,11 +83,11 @@ function determineOperatingSystem() {
 }
 
 function checkRestart() {
-  // accesses the "global" rebootCommand so do not use "use strict"
+  // accesses the "global" variables so do not use "use strict"
   console.log("checkRestart: Running check at: " + (new Date()).toString());
 
-  chrome.storage.local.get('player_id', function(content){
-    if ('player_id' in content) {
+  chrome.storage.local.get("player_id", function(content){
+    if ("player_id" in content) {
       var xhr = new XMLHttpRequest();
       xhr.open("GET", "http://ajax.playr.biz/watchdogs/" + content.player_id +"/command", true);
       xhr.onreadystatechange = function() {
@@ -117,10 +121,11 @@ function checkRestart() {
 }
 
 function preventUncheckedErrorMessageWhenErrorIsExpected() {
+  "use strict";
   if (chrome.runtime.lastError !== undefined) {
     // to prevent unchecked error messages during tests on
     // OSes other than ChromeOS or not running in Kiosk mode
-    console.log('preventUncheckedErrorMessageWhenErrorIsExpected: expected error: ' + chrome.runtime.lastError.message);
+    console.log("preventUncheckedErrorMessageWhenErrorIsExpected: expected error: " + chrome.runtime.lastError.message);
   }
 }
 
@@ -141,6 +146,7 @@ chrome.runtime.onUpdateAvailable.addListener(function(details) {
 
 // TODO use web worker for this if possible
 console.log("Kicking off setInterval with delay: " + oneMinute.toString());
+// accesses the "global" operatingSystem so do not use "use strict"
 setTimeout(function() {
     intervalProcess = setInterval(function () { checkRestart(); }, fiveMinutes);
     console.log("Repeat checkRestart with interval: " + fiveMinutes.toString() + " intervalProcess: " + intervalProcess.toString());
