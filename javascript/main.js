@@ -1,10 +1,10 @@
-const countdownDuration = 10;
+const countdownDuration = 15;
 const oneSecond = 1000;
 const fiveSeconds = 5 * 1000;
 const networkInfoDefault = "No network found";
 const indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
-var tryCountdown = 0;
+var intervalHandle = 0;
 var player_id = "";
 var networkInfo = networkInfoDefault;
 
@@ -126,7 +126,8 @@ var loadPlayer = function() {
   // set visibility of just spinner and logo and set retry time on screen
   document.getElementById("info").style.display = "block";
   document.getElementById("seconds").innerHTML = countdownDuration;
-  document.getElementById("retry_message").style.display = "none";
+  document.getElementById("status").style.display = "none";
+  document.getElementById("countdown").style.display = "none";
   document.getElementById("browser").style.display = "none";
   // try loading image file to check internet connection
   // when successful start player, when not start and show retry timer
@@ -139,31 +140,32 @@ var gotoPlayer = function() {
   // make only webview visible
   document.getElementById("info").style.display = "none";
   document.getElementById("ajax_loader").style.display = "none";
-  document.getElementById("retry_message").style.display = "none";
-  document.getElementById("loaderImage").style.display = "none";
+  document.getElementById("status").style.display = "none";
+  document.getElementById("countdown").style.display = "none";
   document.getElementById("browser").style.display = "block";
   // set cookie target and go to target url
   setPlayerIdCookieAndLoadWebView();
 };
 
 var retryLoading = function() {
-  // accesses the "global" operatingSystem so do not use "use strict"
+  // accesses the "global" variables so do not use "use strict"
   console.log("retryLoading: internet connection not found, starting countdown before retry");
   // set timer and show retry message
   var countdown = countdownDuration;
-  document.getElementById("retry_message").style.display = "block";
+  document.getElementById("status").style.display = "block";
+  setTimeout(function () { document.getElementById("countdown").style.display = "block"; }, 2000);
 
   // remove previous interval identifier
-  if (tryCountdown > 0) { clearInterval(tryCountdown); }
+  if (intervalHandle > 0) { clearInterval(intervalHandle); }
 
   // decrease timer on screen every second and run
   // loadPlayer function when timer is 0
-  tryCountdown = setInterval(function() {
+  intervalHandle = setInterval(function() {
     if (countdown >= 0) {
       document.getElementById("seconds").innerHTML = countdown;
       countdown = countdown - 1;
     } else {
-      clearInterval(tryCountdown);
+      clearInterval(intervalHandle);
       loadPlayer();
     }
   }, oneSecond);
@@ -177,37 +179,66 @@ var tryLoadingImage = function(success_callback, fail_callback) {
     // because of the Content Security Policy of Chrome apps; https://developer.chrome.com/apps/contentSecurityPolicy
     // NOTE: the base of the url needs to be declared in the permissions part
     // of the manifest.json
-    var url = "http://www.playr.biz/playr_loader_test_image.png?" + escape(new Date());
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.responseType = "blob";
-    xhr.onload = function (e) {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          success_callback();
-        } else {
+    var url = "https://www.playr.biz/playr_loader_test_image.png?" + escape(new Date().getTime());
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.responseType = "blob";
+      xhr.onload = function () {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            success_callback();
+          } else {
+            showStatus("Error", "code=" + xhr.status.toString(), "error");
+            fail_callback();
+          }
+        } else{
+          // since the onload event should only fire when readyState === 4
+          // the handling of this situation is different from playr_loader.html
+          showStatus("Error", "status=" + xhr.readyState.toString(), "error");
           fail_callback();
         }
-      } else{
+      };
+      xhr.onerror = function () {
+        showStatus("Error", "event=onerror", "error");
         fail_callback();
-      }
-    };
-    xhr.onerror = function () {
-      document.getElementById("info").innerHTML = "<p>An error occurred on connecting to the server, please restart this device if these errors continue.</p>" + document.getElementById("info").innerHTML;
-      fail_callback();
-    };
-    xhr.onabort = function () {
-      document.getElementById("info").innerHTML = "<p>Connection to the server was aborted, please restart this device if these errors continue.</p>" + document.getElementById("info").innerHTML;
-      fail_callback();
-    };
+      };
+      xhr.onabort = function () {
+        showStatus("Error", "event=onabort", "error");
+        fail_callback();
+      };
+      xhr.ontimeout = function () {
+        showStatus("Error", "event=ontimeout", "error");
+        fail_callback();
+      };
+      xhr.onprogress = function () {
+        showStatus("Loading", "status=" + xhr.readyState.toString(), "info");
+        fail_callback();
+      };
 
-    // do actual request
-    xhr.send();
+      xhr.open("GET", url, true); // true to make the call async
+      xhr.send();
+    } catch (exception) {
+      showStatus(exception.name, exception.message, "error");
+    }
   } else {
     console.log("tryLoadingImage: success_callback and/or fail_callback not defined");
-    // document.getElementById("info").innerHTML = "<p><strong>An error occurred, please restart this device.</strong></p>" + document.getElementById("info").innerHTML;
-    // document.getElementById("info").style.display = "block";
   }
+};
+
+var showStatus = function(name, message, level) {
+  if (level !== undefined && level === "error") {
+    document.getElementById("status").innerHTML = "<p>Could not" +
+      " connect to signage service.</p>" +
+      " Does this device have a network connection or could" +
+      " the internet connection be down? Please check your" +
+      " network or restart this device." +
+      ' <p><div id="exception_message">' + name +
+      ": " + message + "</div></p>";
+  } else {
+    document.getElementById("status").innerHTML = '<p><div id="exception_message">' + name +
+      ": " + message + "</div></p>";
+  }
+  document.getElementById("status").style.display = "block";
 };
 
 var currentTime = function() {
