@@ -10,6 +10,7 @@ zeus.json
 .rdebug_hist/
 .rdebug_hist
 .rvmrc
+.eslintrc.js
 .sass-cache/
 db/*.sqlite3
 db/*.sqlite3-journal
