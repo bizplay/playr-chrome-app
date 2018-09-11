@@ -30,18 +30,22 @@ body {
   right: 0;
   margin: auto;
 }
-#remote_img {
-  width: 1px;
-  height: 1px;
-}
-#retry_message {
-  display: none;
-}
-#info {
+#info, #status, #countdown {
   position: absolute;
   left: 50px;
   top: 100px;
-  color: #777;
+  color: #ddd;
+  font-size: 14px;
+  text-align: left;
+}
+#status, #countdown {
+  display: none;
+}
+#exception_message {
+  position: absolute;
+  left: 50px;
+  top: 100px;
+  color: grey;
   font-size: 14px;
   text-align: left;
 }
