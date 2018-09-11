@@ -47,10 +47,10 @@ function init() {
         "frame": "none",
         "id": "browser",
         "innerBounds": {
-           "left": 0,
-           "top": 0,
-           "width": displayInfos[0].bounds.width,
-           "height": displayInfos[0].bounds.height
+          "left": 0,
+          "top": 0,
+          "width": displayInfos[0].bounds.width,
+          "height": displayInfos[0].bounds.height
         }
       };
       chrome.app.window.create(path, windowOptions, function(createdWindow){
