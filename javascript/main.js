@@ -212,7 +212,6 @@ var tryLoadingImage = function(success_callback, fail_callback) {
       };
       xhr.onprogress = function () {
         showStatus("Loading", "status=" + xhr.readyState.toString(), "info");
-        fail_callback();
       };
 
       xhr.open("GET", url, true); // true to make the call async
