@@ -1,69 +1,107 @@
 const countdownDuration = 15;
-const oneSecond = 1000;
-const fiveSeconds = 5 * 1000;
+const shortPause = 1000;
+const mediumPause = 2 * 1000;
+const longPause = 10 * 1000;
 const networkInfoDefault = "No network found";
 const indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
 var intervalHandle = 0;
 var player_id = "";
+var device_id = "";
 var networkInfo = networkInfoDefault;
 
 document.addEventListener("DOMContentLoaded", function(){
   "use strict";
   showAppInfo();
   // set visibility so only spinner and logo show
-  document.getElementById("retry_message").style.display = "none";
+  document.getElementById("info").style.display = "block";
+  document.getElementById("status").style.display = "none";
+  document.getElementById("countdown").style.display = "none";
   document.getElementById("browser").style.display = "none";
   // show spinner and info for a few seconds and then load player webview
-  var tmp = setTimeout(function () { loadPlayer(); }, fiveSeconds);
+  var tmp = setTimeout(function () { loadPlayer(); }, longPause);
 });
 
-var showAppInfo = function() {
+function showAppInfo() {
   // accesses the "global" player_id so do not use "use strict"
-  chrome.storage.local.get("player_id",function(content){
-    if (content !== undefined && content !== null &&
-        content.player_id !== null && content.player_id !== undefined) {
-      player_id = content.player_id;
-      console.log("showAppInfo: player_id: " + player_id);
-    }
-    chrome.system.network.getNetworkInterfaces(function (networkInterfaces) {
-      console.log("showAppInfo: networkInterfaces.length: " + networkInterfaces.length.toString());
-      if (networkInterfaces !== undefined && networkInterfaces.length > 0) {
-        for (var i = 0; i < networkInterfaces.length ; i++) {
-          console.log("showAppInfo: networkInterfaces[" + i.toString() + "].name: " + networkInterfaces[i].name);
-          console.log("showAppInfo: networkInterfaces[" + i.toString() + "].address: " + networkInterfaces[i].address);
-          if (networkInfo === networkInfoDefault) {
-            if (networkInterfaces[i].address !== undefined && networkInterfaces[i].address !== null && networkInterfaces[i].address.length > 0) {
-              networkInfo = "<table><tr><td>" + indent + "</td><td>" + networkInterfaces[i].name + ":</td><td>" + networkInterfaces[i].address + "</td</tr>";
-            }
-          } else {
-            if (networkInterfaces[i].address !== undefined && networkInterfaces[i].address !== null && networkInterfaces[i].address.length > 0) {
-              networkInfo += "<tr><td></td><td>" + networkInterfaces[i].name + ":</td><td>" + networkInterfaces[i].address + "</td>";
-            }
-          }
-        }
-        if (networkInfo !== networkInfoDefault) {
-          networkInfo += "</table>";
-        } else {
-          networkInfo = indent + networkInfo;
-        }
-      }
-      setInfoInPage(player_id, networkInfo);
+  // we leave in the playerID to have the information show on
+  // the screen in case we need to fix things manually
+  // TODO remove playerID function if Chrome devices can be considered migrated
+  playerId(function () {
+    deviceId(function () {
+      networkInterfaceList(function (networkInfo) { setInfoInPage(networkInfo); });
     });
   });
-};
+}
 
-var setInfoInPage = function(player_id, networkInfo) {
+// global variables player_id and device_id have to be set before calling this function
+function setInfoInPage(networkInfo) {
   "use strict";
-  document.getElementById("info").innerHTML = "<p>device id: " + (player_id !== "" ? player_id.substr(0,8) : "none") +
+  document.getElementById("info").innerHTML = "<p>device id: " + device_id + " (" + (player_id !== "" ? (player_id.substr(0,13) + "...") : "none") + ")" +
                                               "</p><p>app id: " + appId() +
                                               "</p><p>app version: " + appVersion() +
                                               "</p><p>browser version: " + browserVersion() +
                                               "</p><p>OS: " + osVersion() + "</p>" +
                                               "</p><p>Network:<br>" + networkInfo + "</p>";
-};
+}
 
-var osVersion = function() {
+function networkInterfaceList(callback) {
+  chrome.system.network.getNetworkInterfaces(function (networkInterfaces) {
+    console.log("showAppInfo: networkInterfaces.length: " + networkInterfaces.length.toString());
+    if (networkInterfaces !== undefined && networkInterfaces.length > 0) {
+      for (var i = 0; i < networkInterfaces.length; i++) {
+        console.log("showAppInfo: networkInterfaces[" + i.toString() + "].name: " + networkInterfaces[i].name);
+        console.log("showAppInfo: networkInterfaces[" + i.toString() + "].address: " + networkInterfaces[i].address);
+        if (networkInfo === networkInfoDefault) {
+          if (networkInterfaces[i].address !== undefined && networkInterfaces[i].address !== null && networkInterfaces[i].address.length > 0) {
+            networkInfo = "<table><tr><td>" + indent + "</td><td>" + networkInterfaces[i].name + ":</td><td>" + networkInterfaces[i].address + "</td</tr>";
+          }
+        } else {
+          if (networkInterfaces[i].address !== undefined && networkInterfaces[i].address !== null && networkInterfaces[i].address.length > 0) {
+            networkInfo += "<tr><td></td><td>" + networkInterfaces[i].name + ":</td><td>" + networkInterfaces[i].address + "</td>";
+          }
+        }
+      }
+      if (networkInfo !== networkInfoDefault) {
+        networkInfo += "</table>";
+      } else {
+        networkInfo = indent + networkInfo;
+      }
+    }
+    if (callback !== undefined) { callback(networkInfo); }
+  });
+}
+
+function playerId(callback) {
+  // accesses the "global" player_id so do not use "use strict"
+  chrome.storage.local.get("player_id", function (content) {
+    if (content !== undefined && content !== null &&
+      content.player_id !== null && content.player_id !== undefined) {
+      player_id = content.player_id;
+      console.log("showAppInfo: player_id: " + player_id);
+    }
+    if (callback !== undefined) { callback(player_id); }
+  });
+}
+
+function deviceId(callback) {
+  // accesses "global" variables so do not use "use strict"
+  chrome.instanceID.getID(function (instanceID) {
+    if (instanceID === undefined || instanceID === null || instanceID.length === 0) {
+      if (chrome.runtime.lastError !== undefined && chrome.runtime.lastError.message !== undefined) {
+        console.log("Error: deviceId; " + chrome.runtime.lastError.message);
+      } else {
+        console.log("Error: deviceId; instanceID is undefined");
+      }
+    } else {
+      device_id = instanceID;
+      console.log("deviceId: instanceID = " + instanceID);
+    }
+    if (callback !== undefined) { callback(instanceID); }
+  });
+}
+
+function osVersion() {
   "use strict";
   var result = "";
   var os_info_parts = window.navigator.userAgent.match( /\((.*?)\)/ )[1].split(";");
@@ -72,56 +110,47 @@ var osVersion = function() {
   }
   console.log("OS Version: " + result);
   return result;
-};
+}
 
-var browserVersion = function() {
+function browserVersion() {
   "use strict";
   return window.navigator.appVersion.match(/Chrome\/(.*?) /)[1];
-};
+}
 
-var appId = function() {
+function appId() {
   "use strict";
   return chrome.runtime.id;
-};
+}
 
-var appVersion = function() {
+function appVersion() {
   "use strict";
   return chrome.runtime.getManifest().version;
-};
+}
 
-var setPlayerIdCookieAndLoadWebView = function() {
+function setPlayerIdCookieAndLoadWebView() {
   "use strict";
   console.log("setPlayerIdCookieAndLoadWebView: about to load WebView [" + currentTime() + "]");
 
-  if (player_id === "") {
-    getPlayerIdAndLoadWebView();
+  if (device_id !== "") {
+    console.log("setPlayerIdCookieAndLoadWebView: load WebView with device_id=" + device_id);
+    loadWebView(device_id);
   } else {
-    console.log("setPlayerIdCookieAndLoadWebView: load WebView with player_id = " + player_id);
-    loadWebView(player_id);
+    console.log("setPlayerIdCookieAndLoadWebView: load WebView calling deviceId");
+    deviceId(function (deviceID) {
+      loadWebView(deviceID);
+    });
   }
-};
+}
 
-var getPlayerIdAndLoadWebView = function() {
-  // accesses the "global" player_id so do not use "use strict"
-  chrome.storage.local.get("player_id", function(content){
-    if (content !== undefined && content !== null &&
-        content.player_id !== null && content.player_id !== undefined) {
-      player_id = content.player_id;
-    }
-    console.log("getPlayerIdAndLoadWebView: load WebView with player_id = " + player_id + " [" + currentTime() + "]");
-    loadWebView(player_id);
-  });
-};
-
-var loadWebView = function(player_id) {
+function loadWebView(deviceID) {
   "use strict";
   console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
   document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:"+window.innerHeight+"px;");
   console.log("loadWebView: reload browser element");
-  document.getElementById("browser").setAttribute("src", "http://play.playr.biz/?player_id=" + player_id + "&app_version=" + appVersion());
-};
+  document.getElementById("browser").setAttribute("src", "http://play.playr.biz/?player_id=" + deviceID + "&app_version=" + appVersion());
+}
 
-var loadPlayer = function() {
+function loadPlayer() {
   // accesses the "global" countdownDuration so do not use "use strict"
   // set visibility of just spinner and logo and set retry time on screen
   document.getElementById("info").style.display = "block";
@@ -131,10 +160,10 @@ var loadPlayer = function() {
   document.getElementById("browser").style.display = "none";
   // try loading image file to check internet connection
   // when successful start player, when not start and show retry timer
-  tryLoadingImage(gotoPlayer,retryLoading);
-};
+  tryLoadingImage(gotoPlayer, retryLoading);
+}
 
-var gotoPlayer = function() {
+function gotoPlayer() {
   "use strict";
   console.log("gotoPlayer: internet connection established, loading webview");
   // make only webview visible
@@ -145,15 +174,15 @@ var gotoPlayer = function() {
   document.getElementById("browser").style.display = "block";
   // set cookie target and go to target url
   setPlayerIdCookieAndLoadWebView();
-};
+}
 
-var retryLoading = function() {
+function retryLoading() {
   // accesses the "global" variables so do not use "use strict"
   console.log("retryLoading: internet connection not found, starting countdown before retry");
   // set timer and show retry message
   var countdown = countdownDuration;
   document.getElementById("status").style.display = "block";
-  setTimeout(function () { document.getElementById("countdown").style.display = "block"; }, 2000);
+  setTimeout(function () { document.getElementById("countdown").style.display = "block"; }, mediumPause);
 
   // remove previous interval identifier
   if (intervalHandle > 0) { clearInterval(intervalHandle); }
@@ -168,10 +197,10 @@ var retryLoading = function() {
       clearInterval(intervalHandle);
       loadPlayer();
     }
-  }, oneSecond);
-};
+  }, shortPause);
+}
 
-var tryLoadingImage = function(success_callback, fail_callback) {
+function tryLoadingImage(success_callback, fail_callback) {
   "use strict";
   // check presence of callback functions
   if (success_callback !== undefined && fail_callback !== undefined) {
@@ -222,9 +251,9 @@ var tryLoadingImage = function(success_callback, fail_callback) {
   } else {
     console.log("tryLoadingImage: success_callback and/or fail_callback not defined");
   }
-};
+}
 
-var showStatus = function(name, message, level) {
+function showStatus(name, message, level) {
   if (level !== undefined && level === "error") {
     document.getElementById("status").innerHTML = "<p>Could not" +
       " connect to signage service.</p>" +
@@ -238,15 +267,15 @@ var showStatus = function(name, message, level) {
       ": " + message + "</div></p>";
   }
   document.getElementById("status").style.display = "block";
-};
+}
 
-var currentTime = function() {
+function currentTime() {
   "use strict";
   var now = new Date();
   return zeropad(now.getHours(), 2) + ":" + zeropad(now.getMinutes(), 2) + ":" + zeropad(now.getSeconds(), 2) + "." + zeropad(now.getMilliseconds(), 3);
-};
+}
 
-var zeropad = function(number, places){
+function zeropad(number, places) {
   "use strict";
   // used this 'clever' solution because it is fast, see http://jsperf.com/left-zero-pad
   var aNumber = Math.abs(number);
@@ -257,4 +286,4 @@ var zeropad = function(number, places){
   }
 
   return padding + number;
-};
+}
