@@ -10,7 +10,7 @@ var player_id = "";
 var device_id = "";
 var networkInfo = networkInfoDefault;
 
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded", function() {
   "use strict";
   showAppInfo();
   // set visibility so only spinner and logo show
@@ -37,7 +37,7 @@ function showAppInfo() {
 // global variables player_id and device_id have to be set before calling this function
 function setInfoInPage(networkInfo) {
   "use strict";
-  document.getElementById("info").innerHTML = "<p>device id: " + device_id + " (" + (player_id !== "" ? (player_id.substr(0,13) + "...") : "none") + ")" +
+  document.getElementById("info").innerHTML = "<p>device id: " + device_id + " (" + (player_id !== "" ? (player_id.substr(0, 13) + "...") : "none") + ")" +
                                               "</p><p>app id: " + appId() +
                                               "</p><p>app version: " + appVersion() +
                                               "</p><p>browser version: " + browserVersion() +
@@ -104,7 +104,7 @@ function deviceId(callback) {
 function osVersion() {
   "use strict";
   var result = "";
-  var os_info_parts = window.navigator.userAgent.match( /\((.*?)\)/ )[1].split(";");
+  var os_info_parts = window.navigator.userAgent.match(/\((.*?)\)/)[1].split(";");
   for (var i = 0; i < os_info_parts.length; i++) {
     result += os_info_parts[i] + (i === (os_info_parts.length - 1) ? "" : " ");
   }
@@ -145,7 +145,7 @@ function setPlayerIdCookieAndLoadWebView() {
 function loadWebView(deviceID) {
   "use strict";
   console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
-  document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:"+window.innerHeight+"px;");
+  document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
   console.log("loadWebView: reload browser element");
   document.getElementById("browser").setAttribute("src", "http://play.playr.biz/?player_id=" + deviceID + "&app_version=" + appVersion());
 }
@@ -189,7 +189,7 @@ function retryLoading() {
 
   // decrease timer on screen every second and run
   // loadPlayer function when timer is 0
-  intervalHandle = setInterval(function() {
+  intervalHandle = setInterval(function () {
     if (countdown >= 0) {
       document.getElementById("seconds").innerHTML = countdown;
       countdown = countdown - 1;
@@ -220,7 +220,7 @@ function tryLoadingImage(success_callback, fail_callback) {
             showStatus("Error", "code=" + xhr.status.toString(), "error");
             fail_callback();
           }
-        } else{
+        } else {
           // since the onload event should only fire when readyState === 4
           // the handling of this situation is different from playr_loader.html
           showStatus("Error", "status=" + xhr.readyState.toString(), "error");
@@ -279,9 +279,9 @@ function zeropad(number, places) {
   "use strict";
   // used this 'clever' solution because it is fast, see http://jsperf.com/left-zero-pad
   var aNumber = Math.abs(number);
-  var zeros = Math.max(0, places - Math.floor(aNumber).toString().length );
-  var padding = Math.pow(10,zeros).toString().substr(1);
-  if( number < 0 ) {
+  var zeros = Math.max(0, places - Math.floor(aNumber).toString().length);
+  var padding = Math.pow(10, zeros).toString().substr(1);
+  if (number < 0) {
     padding = "-" + padding;
   }
 

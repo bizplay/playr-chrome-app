@@ -102,7 +102,6 @@ function checkRestart() {
       // deviceID undefined, the required HTTP request cannot be made -> no operation
       console.log("checkRestart: deviceID is not defined");
     }
-
   });
 }
 
