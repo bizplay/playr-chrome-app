@@ -9,7 +9,7 @@
       "persistent": false
     }
   },
-  "version": "1.0.0.2",
+  "version": "1.0.1.0",
   "author": {
     "name": "Playr Digital Signage",
     "email": "support@playr.biz"
@@ -30,6 +30,7 @@
     "unlimitedStorage",
     "power",
     "alwaysOnTopWindows",
+    "gcm",
     "http://www.playr.biz/", "https://www.playr.biz/",
     "http://ajax.playr.biz/", "https://ajax.playr.biz/",
     "http://proxy.playr.biz/", "https://proxy.playr.biz/",
