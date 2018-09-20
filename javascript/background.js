@@ -8,36 +8,22 @@ var architecture = "";
 var naclArchitecture = "";
 var intervalProcess;
 
-function getUUID() {
-  "use strict";
-  // generate a type 4 (random) UUID
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) { var r = Math.random()*16|0,v=c=="x"?r:r&0x3|0x8; return v.toString(16); });
-};
-
 function init() {
-  // accesses the "global" variables so do not use "use strict"
+  "use strict";
   console.log("init: start");
   // don't let computer sleep
   chrome.power.requestKeepAwake("display");
 
   // OS info is used by onUpdateAvailable no problem if this is set async
   determineOperatingSystem();
-  // make  sure a player id is present, note: async call
-  chrome.storage.local.get("player_id", function(content){
-    if ("player_id" in content) {
-      // player_id defined no additional actions required
-      console.log("init: player_id: " + content.player_id);
+  // although the device ID should be available we check it here
+  deviceId(function (deviceID) {
+    if (deviceID !== undefined) {
+      console.log("init: deviceID: " + deviceID);
       openWindow("main.html");
     } else {
-      chrome.storage.local.set({"player_id": getUUID()}, function() {
-        if (chrome.runtime.lastError !== undefined) {
-          console.log("init: Error during writing to storage.local: " + chrome.runtime.lastError.message);
-          openWindow("error.html");
-        } else {
-          console.log("init: player_id was not yet defined, setting UUID sucessful (no error reported)");
-          openWindow("main.html");
-        }
-      });
+      console.log("init: deviceID undefined");
+      openWindow("error.html");
     }
   });
 
@@ -62,7 +48,7 @@ function init() {
 }
 
 function windowOnClosed() {
-  "use strict";
+  // accesses the "global" variables so do not use "use strict"
   console.log("window.Onclosed received");
   chrome.power.releaseKeepAwake();
   // stop restart check cycle
@@ -85,11 +71,11 @@ function checkRestart() {
   // accesses the "global" variables so do not use "use strict"
   console.log("checkRestart: Running check at: " + (new Date()).toString());
 
-  chrome.storage.local.get("player_id", function(content){
-    if ("player_id" in content) {
+  deviceId(function (deviceID) {
+    if (deviceID !== undefined) {
       var xhr = new XMLHttpRequest();
-      xhr.open("GET", "http://ajax.playr.biz/watchdogs/" + content.player_id +"/command", true);
-      xhr.onreadystatechange = function() {
+      xhr.open("GET", "http://ajax.playr.biz/watchdogs/" + deviceID + "/command", true);
+      xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {
             // JSON.parse does not evaluate scripts (in case of an attackers malicious script).
@@ -113,15 +99,32 @@ function checkRestart() {
       };
       xhr.send();
     } else {
-      // player_id undefined, the required HTTP request cannot be made -> no operation
-      console.log("checkRestart: player_id is not yet defined");
+      // deviceID undefined, the required HTTP request cannot be made -> no operation
+      console.log("checkRestart: deviceID is not defined");
     }
+
+  });
+}
+
+function deviceId(callback) {
+  "use strict";
+  chrome.instanceID.getID(function (instanceID) {
+    if (instanceID === undefined || instanceID === null || instanceID.length === 0) {
+      if (chrome.runtime.lastError !== undefined && chrome.runtime.lastError.message !== undefined) {
+        console.log("Error: deviceId; " + chrome.runtime.lastError.message);
+      } else {
+        console.log("Error: deviceId; instanceID is undefined");
+      }
+    } else {
+      console.log("deviceId: instanceID = " + instanceID);
+    }
+    if (callback !== undefined) { callback(instanceID); }
   });
 }
 
 function preventUncheckedErrorMessageWhenErrorIsExpected() {
   "use strict";
-  if (chrome.runtime.lastError !== undefined) {
+  if (chrome.runtime.lastError !== undefined && chrome.runtime.lastError.message !== undefined) {
     // to prevent unchecked error messages during tests on
     // OSes other than ChromeOS or not running in Kiosk mode
     console.log("preventUncheckedErrorMessageWhenErrorIsExpected: expected error: " + chrome.runtime.lastError.message);
@@ -146,9 +149,9 @@ chrome.runtime.onUpdateAvailable.addListener(function(details) {
 });
 
 // TODO use web worker for this if possible
-console.log("Kicking off setInterval with delay: " + oneMinute.toString());
+console.log("Kicking off setInterval with delay: " + (oneMinute/1000).toString() + " seconds");
 // accesses the "global" operatingSystem so do not use "use strict"
 setTimeout(function() {
-    intervalProcess = setInterval(function () { checkRestart(); }, fiveMinutes);
-    console.log("Repeat checkRestart with interval: " + fiveMinutes.toString() + " intervalProcess: " + intervalProcess.toString());
-  }, oneMinute);
+  intervalProcess = setInterval(function () { checkRestart(); }, fiveMinutes);
+  console.log("Repeat checkRestart with interval: " + (fiveMinutes/1000).toString() + " seconds, intervalProcess: " + intervalProcess.toString());
+}, oneMinute);
