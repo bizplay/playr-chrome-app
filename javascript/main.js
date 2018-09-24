@@ -2,10 +2,12 @@ const countdownDuration = 15;
 const shortPause = 1000;
 const mediumPause = 2 * 1000;
 const longPause = 10 * 1000;
+const oneMinute = 60 * 1000;
 const networkInfoDefault = "No network found";
 const indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
 var intervalHandle = 0;
+var watchdogResetHandle = 0;
 var player_id = "";
 var device_id = "";
 var networkInfo = networkInfoDefault;
@@ -143,7 +145,20 @@ function setPlayerIdCookieAndLoadWebView() {
 }
 
 function loadWebView(deviceID) {
-  "use strict";
+  // accesses the "global" watchdogResetHandle so do not use "use strict"
+  // remove previous interval identifier
+  if (watchdogResetHandle > 0) { clearInterval(watchdogResetHandle); }
+  watchdogResetHandle = setInterval(function () {
+    chrome.runtime.getBackgroundPage(function (backgroundPage) {
+      // prevent the watchdog from restarting the device (if this thread crashes/freezes a restart should occur)
+      if (backgroundPage !== undefined) {
+        backgroundPage.watchdogTrigger = backgroundPage.watchdogTriggerNoRestart;
+      } else {
+        console.log("loadWebView getBackgroundPage; Error: No background page found");
+      }
+    });
+  }, oneMinute);
+  console.log("loadWebView: started watchdog reset cycle: " + watchdogResetHandle.toString());
   console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
   document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
   console.log("loadWebView: reload browser element");

@@ -7,6 +7,11 @@ var operatingSystem = "";
 var architecture = "";
 var naclArchitecture = "";
 var intervalProcess;
+// the following two vars should not be turned into consts since a const
+// is not in scope of the window when this is retrieved by chrome.runtime.getBackgroundPage
+var watchdogTriggerNoRestart = 1234;
+var watchdogTriggerRestart = 9876;
+var watchdogTrigger = watchdogTriggerRestart;
 
 function init() {
   "use strict";
@@ -71,38 +76,55 @@ function checkRestart() {
   // accesses the "global" variables so do not use "use strict"
   console.log("checkRestart: Running check at: " + (new Date()).toString());
 
-  deviceId(function (deviceID) {
-    if (deviceID !== undefined) {
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", "http://ajax.playr.biz/watchdogs/" + deviceID + "/command", true);
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-            // JSON.parse does not evaluate scripts (in case of an attackers malicious script).
-            var resp = JSON.parse(xhr.responseText);
-            if (resp !== undefined && resp.toString() === rebootCommand) {
-              console.log("checkRestart: Restart at: " + (new Date()).toString());
-              // Restart the ChromeOS device when the app runs in kiosk mode. Otherwise, it's no-op.
-              chrome.runtime.restart();
-              preventUncheckedErrorMessageWhenErrorIsExpected();
+  if (watchdogTrigger === watchdogTriggerRestart) {
+    restartDevice();
+  } else {
+    // reset the trigger so a restart is done the next time
+    // checkRestart is called (unless the GUI process sets
+    // the watchdogTrigger to watchdogTriggerNoRestart)
+    watchdogTrigger = watchdogTriggerRestart;
+    // check server for restart signal
+    deviceId(function (deviceID) {
+      if (deviceID !== undefined) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "http://ajax.playr.biz/watchdogs/" + deviceID + "/command", true);
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+              // JSON.parse does not evaluate scripts (in case of an attackers malicious script).
+              var resp = JSON.parse(xhr.responseText);
+              if (resp !== undefined && resp.toString() === rebootCommand) {
+                restartDevice();
+                // console.log("checkRestart: Restart device at: " + (new Date()).toString());
+                // // Restart the ChromeOS device when the app runs in kiosk mode. Otherwise, it's no-op.
+                // chrome.runtime.restart();
+                // preventUncheckedErrorMessageWhenErrorIsExpected();
+              } else {
+                // response was not reboot code -> no operation
+              }
             } else {
-              // response was not reboot code -> no operation
+              console.log("checkRestart: xhr.status !== 200");
+              // non success HTTP status code -> no operation
             }
           } else {
-            console.log("checkRestart: xhr.status !== 200");
-            // non success HTTP status code -> no operation
+            console.log("checkRestart: xhr.readyState !== 4");
+            // XML HTTP Request ready status not ok -> no operation
           }
-        } else {
-          console.log("checkRestart: xhr.readyState !== 4");
-          // XML HTTP Request ready status not ok -> no operation
-        }
-      };
-      xhr.send();
-    } else {
-      // deviceID undefined, the required HTTP request cannot be made -> no operation
-      console.log("checkRestart: deviceID is not defined");
-    }
-  });
+        };
+        xhr.send();
+      } else {
+        // deviceID undefined, the required HTTP request cannot be made -> no operation
+        console.log("checkRestart: deviceID is not defined");
+      }
+    });
+  }
+}
+
+function restartDevice() {
+  console.log("restartDevice: Restart device at: " + (new Date()).toString());
+  // Restart the ChromeOS device when the app runs in kiosk mode. Otherwise, it's no-op.
+  chrome.runtime.restart();
+  preventUncheckedErrorMessageWhenErrorIsExpected();
 }
 
 function deviceId(callback) {
