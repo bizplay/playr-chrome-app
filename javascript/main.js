@@ -3,11 +3,13 @@ const shortPause = 1000;
 const mediumPause = 2 * 1000;
 const longPause = 10 * 1000;
 const oneMinute = 60 * 1000;
+const thirtySeconds = 30 * 1000;
 const networkInfoDefault = "No network found";
 const indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
-var intervalHandle = 0;
+var countdownHandle = 0;
 var watchdogResetHandle = 0;
+var systemInformationHandle = 0;
 var player_id = "";
 var device_id = "";
 var networkInfo = networkInfoDefault;
@@ -146,7 +148,6 @@ function setPlayerIdCookieAndLoadWebView() {
 
 function loadWebView(deviceID) {
   // accesses the "global" watchdogResetHandle so do not use "use strict"
-  // remove previous interval identifier
   if (watchdogResetHandle > 0) { clearInterval(watchdogResetHandle); }
   watchdogResetHandle = setInterval(function () {
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
@@ -158,6 +159,23 @@ function loadWebView(deviceID) {
       }
     });
   }, oneMinute);
+  if (systemInformationHandle > 0) { clearInterval(systemInformationHandle); }
+  systemInformationHandle = setInterval(function () {
+    chrome.runtime.getBackgroundPage(function (backgroundPage) {
+      // prevent the watchdog from restarting the device (if this thread crashes/freezes a restart should occur)
+      if (backgroundPage !== undefined) {
+        console.log("loadWebView getBackgroundPage executing script on webview");
+        document.getElementById("browser").executeScript({ code: "document.setSystemInformation(" + JSON.stringify(backgroundPage.systemInformation) + ")" }, function (results){
+          console.log("loadWebView getBackgroundPage results.length: " + (results !== undefined ? results.length.toString() : "<undefined>"));
+          if (results === undefined || results.length < 1 /*|| results[0].toString() !== (backgroundPage.systemInformation || "").toString()*/) {
+            console.log("loadWebView getBackgroundPage webview.executeScript; Error: incorrect response to setCpuTemperature() call");
+          }
+        });
+      } else {
+        console.log("loadWebView getBackgroundPage; Error: No background page found");
+      }
+    });
+  }, thirtySeconds);
   console.log("loadWebView: started watchdog reset cycle: " + watchdogResetHandle.toString());
   console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
   document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
@@ -200,16 +218,16 @@ function retryLoading() {
   setTimeout(function () { document.getElementById("countdown").style.display = "block"; }, mediumPause);
 
   // remove previous interval identifier
-  if (intervalHandle > 0) { clearInterval(intervalHandle); }
+  if (countdownHandle > 0) { clearInterval(countdownHandle); }
 
   // decrease timer on screen every second and run
   // loadPlayer function when timer is 0
-  intervalHandle = setInterval(function () {
+  countdownHandle = setInterval(function () {
     if (countdown >= 0) {
       document.getElementById("seconds").innerHTML = countdown;
       countdown = countdown - 1;
     } else {
-      clearInterval(intervalHandle);
+      clearInterval(countdownHandle);
       loadPlayer();
     }
   }, shortPause);

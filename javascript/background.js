@@ -1,3 +1,4 @@
+const fifteenSeconds = 15 * 1000;
 const oneMinute = 60 * 1000;
 const threeMinutes = 3 * 60 * 1000;
 const fiveMinutes = 5 * 60 * 1000;
@@ -6,7 +7,9 @@ const rebootCommand = "1";
 var operatingSystem = "";
 var architecture = "";
 var naclArchitecture = "";
-var intervalProcess;
+var systemInformation = {};
+var restartIntervalHandle;
+var sysInfoIntervalHandle;
 // the following two vars should not be turned into consts since a const
 // is not in scope of the window when this is retrieved by chrome.runtime.getBackgroundPage
 var watchdogTriggerNoRestart = 1234;
@@ -57,7 +60,8 @@ function windowOnClosed() {
   console.log("window.Onclosed received");
   chrome.power.releaseKeepAwake();
   // stop restart check cycle
-  clearInterval(intervalProcess);
+  clearInterval(restartIntervalHandle);
+  clearInterval(sysInfoIntervalHandle);
   // cancel possibly set delayed restart
   chrome.runtime.restartAfterDelay(-1, preventUncheckedErrorMessageWhenErrorIsExpected);
 }
@@ -95,10 +99,6 @@ function checkRestart() {
               var resp = JSON.parse(xhr.responseText);
               if (resp !== undefined && resp.toString() === rebootCommand) {
                 restartDevice();
-                // console.log("checkRestart: Restart device at: " + (new Date()).toString());
-                // // Restart the ChromeOS device when the app runs in kiosk mode. Otherwise, it's no-op.
-                // chrome.runtime.restart();
-                // preventUncheckedErrorMessageWhenErrorIsExpected();
               } else {
                 // response was not reboot code -> no operation
               }
@@ -121,10 +121,41 @@ function checkRestart() {
 }
 
 function restartDevice() {
+  "use strict";
   console.log("restartDevice: Restart device at: " + (new Date()).toString());
   // Restart the ChromeOS device when the app runs in kiosk mode. Otherwise, it's no-op.
   chrome.runtime.restart();
   preventUncheckedErrorMessageWhenErrorIsExpected();
+}
+
+// set system information (currenlty; CPU temperature) in variables
+// of the player software in the webview tag to enable the player
+// software to report that in the heartbeat calls
+function getSystemInformation() {
+  "use strict";
+  cpuTemperature();
+}
+
+function cpuTemperature() {
+  // accesses "global" variables so do not use "use strict"
+  chrome.system.cpu.getInfo(function (info) {
+    if (info !== undefined) {
+      systemInformation.numberOfProcessors = info.numOfProcessors;
+      systemInformation.architectureName = info.archName;
+      systemInformation.modelName = info.modelName;
+      systemInformation.features = info.features;
+      systemInformation.temperatures = info.temperatures;
+      systemInformation.processors = [];
+      for (var i = 0; i < info.processors.length; i++) {
+        systemInformation.processors.push({
+          userTime: info.processors[i].usage.user,
+          kernelTime: info.processors[i].usage.kernel,
+          idleTime: info.processors[i].usage.idle,
+          totalTime: info.processors[i].usage.total
+        });
+      }
+    }
+  });
 }
 
 function deviceId(callback) {
@@ -155,7 +186,7 @@ function preventUncheckedErrorMessageWhenErrorIsExpected() {
 chrome.app.runtime.onLaunched.addListener(function () { init(); });
 chrome.app.runtime.onRestarted.addListener(function () { init(); });
 chrome.runtime.onUpdateAvailable.addListener(function(details) {
-  // accesses the "global" operatingSystem so do not use "use strict"
+  // accesses "global" variables so do not use "use strict"
   if (operatingSystem === "cros") {
     console.log("Update available to version: " + details.version + ". Starting update.");
     // calculate delay until random time between 4 and 5 at night
@@ -170,9 +201,16 @@ chrome.runtime.onUpdateAvailable.addListener(function(details) {
 });
 
 // TODO use web worker for this if possible
-console.log("Kicking off setInterval with delay: " + (oneMinute/1000).toString() + " seconds");
-// accesses the "global" operatingSystem so do not use "use strict"
+console.log("Kicking off checkRestart interval with delay: " + (oneMinute/1000).toString() + " seconds");
+// accesses "global" variables so do not use "use strict"
 setTimeout(function() {
-  intervalProcess = setInterval(function () { checkRestart(); }, fiveMinutes);
-  console.log("Repeat checkRestart with interval: " + (fiveMinutes/1000).toString() + " seconds, intervalProcess: " + intervalProcess.toString());
+  restartIntervalHandle = setInterval(function () { checkRestart(); }, fiveMinutes);
+  console.log("Repeat checkRestart with interval: " + (fiveMinutes/1000).toString() + " seconds, restartIntervalHandle: " + restartIntervalHandle.toString());
+}, oneMinute);
+
+console.log("Kicking off getSystemInformation interval with delay: " + (oneMinute / 1000).toString() + " seconds");
+// accesses "global" variables so do not use "use strict"
+setTimeout(function () {
+  sysInfoIntervalHandle = setInterval(function () { getSystemInformation(); }, fifteenSeconds);
+  console.log("Repeat getSystemInformation with interval: " + (fifteenSeconds / 1000).toString() + " seconds, sysInfoIntervalHandle: " + sysInfoIntervalHandle.toString());
 }, oneMinute);
