@@ -9,7 +9,7 @@
       "persistent": false
     }
   },
-  "version": "1.0.1.2",
+  "version": "1.0.1.4",
   "author": {
     "name": "Playr Digital Signage",
     "email": "support@playr.biz"
@@ -25,6 +25,7 @@
   "permissions": [
     "system.display",
     "system.network",
+    "system.cpu",
     "webview",
     "storage",
     "unlimitedStorage",
