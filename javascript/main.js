@@ -146,18 +146,6 @@ function setPlayerIdCookieAndLoadWebView() {
   }
 }
 
-// set up system information communication to the content of the webview
-function handleWebViewEvent(event) {
-  "use strict";
-  console.log("handleWebViewEvent event: " + (event !== undefined ? (event.detail || "") : "").toString());
-}
-window.addEventListener("FromWebView", handleWebViewEvent, false);
-
-// code to send an event from the webview; todo inject into page inside webview
-// var message = "message from WebView";
-// var event = new CustomEvent("FromWebView", { detail: message });
-// window.dispatchEvent(event);
-
 function loadWebView(deviceID) {
   // accesses the "global" watchdogResetHandle so do not use "use strict"
   // set up watchdog cycle
@@ -174,37 +162,13 @@ function loadWebView(deviceID) {
   }, oneMinute);
   console.log("loadWebView: started watchdog reset cycle: " + watchdogResetHandle.toString());
 
-  // set up code to handle incoming events in webview
-  // console.log("loadWebView adding eventListener 'contentload'");
-  // document.getElementById("browser").addEventListener('contentload', function () {
-  //   "use strict";
-  //   var handlerCode = "function handleSysInfoEvent(event) { console.log('handleSysInfoEvent; setting systemInformation'); window['systemInformation'] = JSON.parse(event.detail); };";
-  //   // var code = "var script = document.createElement('script'); script.type=\"text/javascript\"; script.textContent=\"" + handlerCode + "\"; (document.head || document.documentElement).appendChild(script); console.log('added handlerCode to document'); window.addEventListener('ToWebView-sysinfo', function(event){handleSysInfoEvent(event);}, false); console.log('added eventhandler to window');";
-  //   var code = "var script = document.createElement('script'); script.type=\"text/javascript\"; script.textContent=\"function handleSysInfoEvent(event) { console.log('handleSysInfoEvent; setting systemInformation ' + (Object.keys(event.detail)||['<empty>'])[0].toString()); window['systemInformation'] = JSON.parse(event.detail||'{'error': 'event.detail is missing'}'); };\"; (document.head || document.documentElement).appendChild(script); console.log('added handlerCode to document'); window.addEventListener('ToWebView-sysinfo', function(event){handleSysInfoEvent(event);}, false); console.log('added eventhandler to window');";
-  //   console.log("loadWebView eventListener 'contentload'; adding event handler to webview");
-  //   document.getElementById("browser").executeScript({ code: code });
-  // });
-  // set up system information cycle
   if (systemInformationHandle > 0) { clearInterval(systemInformationHandle); }
   systemInformationHandle = setInterval(function () {
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
       if (backgroundPage !== undefined) {
-        // console.log("loadWebView getBackgroundPage executing script on webview");
         console.log("loadWebView getBackgroundPage sending sys info DOM event");
-        // var event = new CustomEvent("systemInformationEvent", { "detail": JSON.stringify(backgroundPage.systemInformation) });
         var code = "window.dispatchEvent(new CustomEvent(\"systemInformationEvent\", { \"detail\": '" + JSON.stringify(backgroundPage.systemInformation) + "' }));";
         document.getElementById("browser").executeScript({ code: code });
-        // var code = "script = document.createElement('script'); script.text=\"var systemInformation='" + JSON.stringify(backgroundPage.systemInformation) + "'\"; document.head.appendChild(script);"
-        // document.getElementById("browser").executeScript({ code: code });
-        // document.getElementById("browser").executeScript({ code: "setSystemInformation('" + JSON.stringify(backgroundPage.systemInformation) + "');" }, function (results){
-        // document.getElementById("browser").executeScript({ code: "window.testFunction('frut');" }, function (results){
-        // console.log("loadWebView getBackgroundPage results.length: " + (results !== undefined ? results.length.toString() : "<undefined>"));
-        //   console.log("loadWebView getBackgroundPage results.length: " + (results !== undefined ? results.length.toString() : "<undefined>"));
-        //   console.log("loadWebView getBackgroundPage result: " + ((results || ["<undefined>","<undefined>"])[0] || "<undef/null>").toString());
-        //   if (results === undefined || results.length < 1 /*|| results[0].toString() !== (backgroundPage.systemInformation || "").toString()*/) {
-        //     console.log("loadWebView getBackgroundPage webview.executeScript; Error: incorrect response to setCpuTemperature() call");
-        //   }
-        // });
       } else {
         console.log("loadWebView getBackgroundPage; Error: No background page found");
       }
