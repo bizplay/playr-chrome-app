@@ -128,26 +128,27 @@ function restartDevice() {
   preventUncheckedErrorMessageWhenErrorIsExpected();
 }
 
-// set system information (currenlty; CPU temperature) in variables
-// of the player software in the webview tag to enable the player
-// software to report that in the heartbeat calls
+// set system information in variables
+// which will be used from the main.js to send into the webview
+// (using DOM events) to enable the player software to report
+// these in the playback_health calls
 function getSystemInformation() {
-  "use strict";
-  cpuTemperature();
+  // accesses the "global" variables so do not use "use strict"
+  cpuInformation(systemInformation);
 }
 
-function cpuTemperature() {
+function cpuInformation(informationContainer) {
   // accesses "global" variables so do not use "use strict"
   chrome.system.cpu.getInfo(function (info) {
     if (info !== undefined) {
-      systemInformation.numberOfProcessors = info.numOfProcessors;
-      systemInformation.architectureName = info.archName;
-      systemInformation.modelName = info.modelName;
-      systemInformation.features = info.features;
-      systemInformation.temperatures = info.temperatures;
-      systemInformation.processors = [];
+      informationContainer.numberOfProcessors = info.numOfProcessors;
+      informationContainer.architectureName = info.archName;
+      informationContainer.modelName = info.modelName;
+      informationContainer.features = info.features;
+      informationContainer.temperatures = info.temperatures;
+      informationContainer.processors = [];
       for (var i = 0; i < info.processors.length; i++) {
-        systemInformation.processors.push({
+        informationContainer.processors.push({
           userTime: info.processors[i].usage.user,
           kernelTime: info.processors[i].usage.kernel,
           idleTime: info.processors[i].usage.idle,

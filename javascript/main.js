@@ -154,7 +154,9 @@ function loadWebView(deviceID) {
   console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
   document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
   console.log("loadWebView: reload browser element");
-  document.getElementById("browser").setAttribute("src", "http://www.playr.work/play?player_id=" + deviceID + "&app_version=" + appVersion());
+  document.getElementById("browser").setAttribute("src", "http://play.playr.biz/?player_id=" + deviceID + "&app_version=" + appVersion());
+  // document.getElementById("browser").setAttribute("src", "http://www.playr.work/play?player_id=" + deviceID + "&app_version=" + appVersion());
+  // document.getElementById("browser").setAttribute("src", "http://www.bizplay.rocks:3000/play?player_id=" + deviceID + "&app_version=" + appVersion());
 }
 
 function setupWatchdogCycle() {
