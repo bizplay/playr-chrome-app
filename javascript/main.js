@@ -147,8 +147,18 @@ function setPlayerIdCookieAndLoadWebView() {
 }
 
 function loadWebView(deviceID) {
+  "use strict";
+  setupWatchdogCycle();
+  setupSystemInformationCycle();
+
+  console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
+  document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
+  console.log("loadWebView: reload browser element");
+  document.getElementById("browser").setAttribute("src", "http://www.playr.work/play?player_id=" + deviceID + "&app_version=" + appVersion());
+}
+
+function setupWatchdogCycle() {
   // accesses the "global" watchdogResetHandle so do not use "use strict"
-  // set up watchdog cycle
   if (watchdogResetHandle > 0) { clearInterval(watchdogResetHandle); }
   watchdogResetHandle = setInterval(function () {
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
@@ -156,29 +166,28 @@ function loadWebView(deviceID) {
       if (backgroundPage !== undefined) {
         backgroundPage.watchdogTrigger = backgroundPage.watchdogTriggerNoRestart;
       } else {
-        console.log("loadWebView getBackgroundPage; Error: No background page found");
+        console.log("setupWatchdogCycle; Error: No background page found");
       }
     });
   }, oneMinute);
-  console.log("loadWebView: started watchdog reset cycle: " + watchdogResetHandle.toString());
+  console.log("setupWatchdogCycle: started watchdog reset cycle: " + watchdogResetHandle.toString());
+}
 
+function setupSystemInformationCycle() {
+  // accesses the "global" watchdogResetHandle so do not use "use strict"
   if (systemInformationHandle > 0) { clearInterval(systemInformationHandle); }
   systemInformationHandle = setInterval(function () {
     chrome.runtime.getBackgroundPage(function (backgroundPage) {
       if (backgroundPage !== undefined) {
-        console.log("loadWebView getBackgroundPage sending sys info DOM event");
+        console.log("setupSystemInformationCycle getBackgroundPage sending system information DOM event");
         var code = "window.dispatchEvent(new CustomEvent(\"systemInformationEvent\", { \"detail\": '" + JSON.stringify(backgroundPage.systemInformation) + "' }));";
         document.getElementById("browser").executeScript({ code: code });
       } else {
-        console.log("loadWebView getBackgroundPage; Error: No background page found");
+        console.log("setupSystemInformationCycle; Error: No background page found");
       }
     });
   }, thirtySeconds);
-
-  console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
-  document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
-  console.log("loadWebView: reload browser element");
-  document.getElementById("browser").setAttribute("src", "http://www.playr.work/play?player_id=" + deviceID + "&app_version=" + appVersion());
+  console.log("setupSystemInformationCycle: started system information cycle: " + systemInformationHandle.toString());
 }
 
 function loadPlayer() {
