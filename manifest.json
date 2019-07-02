@@ -9,13 +9,13 @@
       "persistent": false
     }
   },
-  "version": "1.0.1.4",
+  "version": "1.0.2.0",
   "author": {
     "name": "Playr Digital Signage",
     "email": "support@playr.biz"
   },
   "kiosk_enabled": true,
-  "offline_enabled": false,
+  "offline_enabled": true,
   "minimum_chrome_version": "46",
   "icons": {
     "16": "images/playr-icon-16x16.png",
