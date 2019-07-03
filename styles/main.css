@@ -22,7 +22,7 @@ body {
 }
 #logo_and_loader {
   width: 100px;
-  height: 50px;
+  height: 100px;
   position: absolute;
   top:0;
   bottom: 0;
@@ -31,22 +31,25 @@ body {
   margin: auto;
 }
 #info, #status, #countdown {
-  position: absolute;
+  position: relative;
   left: 50px;
-  top: 100px;
+  padding-top: 20px;
   color: #ddd;
-  font-size: 14px;
+  font-size: 16px;
   text-align: left;
 }
 #status, #countdown {
   display: none;
 }
+#status {
+  color: #dd3;
+  font-size: 20px;
+}
 #exception_message {
-  position: absolute;
+  position: relative;
   left: 50px;
-  top: 100px;
   color: grey;
-  font-size: 14px;
+  font-size: 16px;
   text-align: left;
 }
 #p {
