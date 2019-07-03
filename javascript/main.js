@@ -1,4 +1,4 @@
-const countdownDuration = 15;
+const countdownDuration = 30;
 const shortPause = 1000;
 const mediumPause = 2 * 1000;
 const longPause = 10 * 1000;
@@ -45,7 +45,7 @@ function setInfoInPage(networkInfo) {
                                               "</p><p>app id: " + appId() +
                                               "</p><p>app version: " + appVersion() +
                                               "</p><p>browser version: " + browserVersion() +
-                                              "</p><p>OS: " + osVersion() + "</p>" +
+                                              "</p><p>OS: " + osVersion() +
                                               "</p><p>Network:<br>" + networkInfo + "</p>";
 }
 
@@ -77,6 +77,7 @@ function networkInterfaceList(callback) {
 }
 
 function playerId(callback) {
+  if (chrome.storage === undefined && callback !== undefined) { callback(""); }
   // accesses the "global" player_id so do not use "use strict"
   chrome.storage.local.get("player_id", function (content) {
     if (content !== undefined && content !== null &&
@@ -299,14 +300,14 @@ function showStatus(name, message, level) {
   if (level !== undefined && level === "error") {
     document.getElementById("status").innerHTML = "<p>Could not" +
       " connect to signage service.</p>" +
-      " Does this device have a network connection or could" +
-      " the internet connection be down? Please check your" +
-      " network or restart this device." +
-      ' <p><div id="exception_message">' + name +
-      ": " + message + "</div></p>";
+      "<p>Does this device have a network connection or could" +
+      " the internet connection be down?</p><p>If this continues; please check your" +
+      " network or restart this device.</p>" +
+      ' <p><div id="exception_message">Exception: ' + name +
+      "; " + message + "</div></p>";
   } else {
-    document.getElementById("status").innerHTML = '<p><div id="exception_message">' + name +
-      ": " + message + "</div></p>";
+    document.getElementById("status").innerHTML = '<p><div id="exception_message">Exception: ' + name +
+      "; " + message + "</div></p>";
   }
   document.getElementById("status").style.display = "block";
 }

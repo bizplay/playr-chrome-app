@@ -204,14 +204,14 @@ chrome.runtime.onUpdateAvailable.addListener(function(details) {
 // TODO use web worker for this if possible
 console.log("Kicking off checkRestart interval with delay: " + (oneMinute/1000).toString() + " seconds");
 // accesses "global" variables so do not use "use strict"
-setTimeout(function() {
+setTimeout(function () {
   restartIntervalHandle = setInterval(function () { checkRestart(); }, fiveMinutes);
   console.log("Repeat checkRestart with interval: " + (fiveMinutes/1000).toString() + " seconds, restartIntervalHandle: " + restartIntervalHandle.toString());
 }, oneMinute);
 
-console.log("Kicking off getSystemInformation interval with delay: " + (oneMinute / 1000).toString() + " seconds");
+console.log("Kicking off getSystemInformation interval with delay: " + (oneMinute/1000).toString() + " seconds");
 // accesses "global" variables so do not use "use strict"
 setTimeout(function () {
   sysInfoIntervalHandle = setInterval(function () { getSystemInformation(); }, fifteenSeconds);
-  console.log("Repeat getSystemInformation with interval: " + (fifteenSeconds / 1000).toString() + " seconds, sysInfoIntervalHandle: " + sysInfoIntervalHandle.toString());
+  console.log("Repeat getSystemInformation with interval: " + (fifteenSeconds/1000).toString() + " seconds, sysInfoIntervalHandle: " + sysInfoIntervalHandle.toString());
 }, oneMinute);
