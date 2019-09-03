@@ -177,7 +177,7 @@ function setupWatchdogCycle() {
 }
 
 function setupSystemInformationCycle() {
-  // accesses the "global" watchdogResetHandle so do not use "use strict"
+  // accesses the "global" systemInformationHandle so do not use "use strict"
   if (systemInformationHandle > 0) { clearInterval(systemInformationHandle); }
   systemInformationHandle = setInterval(function () {
     chrome.runtime.getBackgroundPage(function (backgroundPage) {

@@ -1,4 +1,5 @@
 const fifteenSeconds = 15 * 1000;
+const thirtySeconds = 30 * 1000;
 const oneMinute = 60 * 1000;
 const threeMinutes = 3 * 60 * 1000;
 const fiveMinutes = 5 * 60 * 1000;
@@ -26,11 +27,11 @@ function init() {
   determineOperatingSystem();
   // although the device ID should be available we check it here
   deviceId(function (deviceID) {
-    if (deviceID !== undefined) {
-      console.log("init: deviceID: " + deviceID);
+    if (deviceID !== undefined && deviceID !==  null) {
+      console.log("init: deviceID: " + deviceID.toString() + " => opening main.html");
       openWindow("main.html");
     } else {
-      console.log("init: deviceID undefined");
+      console.log("init: deviceID is undefined or null => opening error.html");
       openWindow("error.html");
     }
   });
@@ -69,9 +70,9 @@ function windowOnClosed() {
 function determineOperatingSystem() {
   // accesses the "global" variables so do not use "use strict"
   chrome.runtime.getPlatformInfo(function(platformInformation) {
-    operatingSystem = platformInformation.os;
-    architecture = platformInformation.arch;
-    naclArchitecture = platformInformation.nacl_arch;
+    operatingSystem = (platformInformation.os || "").toString();
+    architecture = (platformInformation.arch || "").toString();
+    naclArchitecture = (platformInformation.nacl_arch || "").toString();
     console.log("Operating System: " + operatingSystem + " " + architecture + " " + naclArchitecture);
   });
 }
@@ -96,8 +97,8 @@ function checkRestart() {
           if (xhr.readyState === 4) {
             if (xhr.status === 200) {
               // JSON.parse does not evaluate scripts (in case of an attackers malicious script).
-              var resp = JSON.parse(xhr.responseText);
-              if (resp !== undefined && resp.toString() === rebootCommand) {
+              var response = JSON.parse(xhr.responseText);
+              if (response !== undefined && response.toString() === rebootCommand) {
                 restartDevice();
               } else {
                 // response was not reboot code -> no operation
@@ -141,18 +142,18 @@ function cpuInformation(informationContainer) {
   // accesses "global" variables so do not use "use strict"
   chrome.system.cpu.getInfo(function (info) {
     if (info !== undefined) {
-      informationContainer.numberOfProcessors = info.numOfProcessors;
-      informationContainer.architectureName = info.archName;
-      informationContainer.modelName = info.modelName;
-      informationContainer.features = info.features;
-      informationContainer.temperatures = info.temperatures;
+      informationContainer.numberOfProcessors = (info.numOfProcessors || "0").toString();
+      informationContainer.architectureName = (info.archName || "").toString();
+      informationContainer.modelName = (info.modelName || "").toString();
+      informationContainer.features = (info.features || "").toString();
+      informationContainer.temperatures = (info.temperatures || "0").toString();
       informationContainer.processors = [];
       for (var i = 0; i < info.processors.length; i++) {
         informationContainer.processors.push({
-          userTime: info.processors[i].usage.user,
-          kernelTime: info.processors[i].usage.kernel,
-          idleTime: info.processors[i].usage.idle,
-          totalTime: info.processors[i].usage.total
+          userTime: (info.processors[i].usage.user || "0").toString(),
+          kernelTime: (info.processors[i].usage.kernel || "0").toString(),
+          idleTime: (info.processors[i].usage.idle || "0").toString(),
+          totalTime: (info.processors[i].usage.total || "0").toString()
         });
       }
     }
@@ -169,7 +170,7 @@ function deviceId(callback) {
         console.log("Error: deviceId; instanceID is undefined");
       }
     } else {
-      console.log("deviceId: instanceID = " + instanceID);
+      console.log("deviceId: instanceID = " + instanceID.toString());
     }
     if (callback !== undefined) { callback(instanceID); }
   });
@@ -209,9 +210,9 @@ setTimeout(function () {
   console.log("Repeat checkRestart with interval: " + (fiveMinutes/1000).toString() + " seconds, restartIntervalHandle: " + restartIntervalHandle.toString());
 }, oneMinute);
 
-console.log("Kicking off getSystemInformation interval with delay: " + (oneMinute/1000).toString() + " seconds");
+console.log("Kicking off getSystemInformation interval with delay: " + (thirtySeconds/1000).toString() + " seconds");
 // accesses "global" variables so do not use "use strict"
 setTimeout(function () {
   sysInfoIntervalHandle = setInterval(function () { getSystemInformation(); }, fifteenSeconds);
   console.log("Repeat getSystemInformation with interval: " + (fifteenSeconds/1000).toString() + " seconds, sysInfoIntervalHandle: " + sysInfoIntervalHandle.toString());
-}, oneMinute);
+}, thirtySeconds);
