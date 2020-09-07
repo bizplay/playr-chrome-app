@@ -10,6 +10,8 @@ const indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 var countdownHandle = 0;
 var watchdogResetHandle = 0;
 var systemInformationHandle = 0;
+var directory_device_id = "";
+var device_serial_number = "";
 var player_id = "";
 var device_id = "";
 var networkInfo = networkInfoDefault;
@@ -33,7 +35,13 @@ function showAppInfo() {
   // TODO remove playerID function if Chrome devices can be considered migrated
   playerId(function () {
     deviceId(function () {
-      networkInterfaceList(function (networkInfo) { setInfoInPage(networkInfo); });
+      directoryDeviceId(function () {
+        deviceSerialNumber(function () {
+          networkInterfaceList(function (networkInfo) {
+            setInfoInPage(networkInfo);
+          });
+        });
+      });
     });
   });
 }
@@ -42,8 +50,10 @@ function showAppInfo() {
 function setInfoInPage(networkInfo) {
   "use strict";
   document.getElementById("info").innerHTML = "<p>device id: " + device_id + " (" + (player_id !== "" ? (player_id.substr(0, 13) + "...") : "none") + ")" +
+                                              "</p><p>directory device id: " + (directory_device_id !== "" ? (directory_device_id.substr(0, 10) + "...") : "none") +
+                                              "&nbsp;&nbsp;&nbsp;serial number: " + (device_serial_number !== "" ? (device_serial_number.substr(0, 10) + "...") : "none") +
                                               "</p><p>app id: " + appId() +
-                                              "</p><p>app version: " + appVersion() +
+                                              "&nbsp;&nbsp;&nbsp;app version: " + appVersion() +
                                               "</p><p>browser version: " + browserVersion() +
                                               "</p><p>OS: " + osVersion() +
                                               "</p><p>Network:<br>" + networkInfo + "</p>";
@@ -83,7 +93,7 @@ function playerId(callback) {
     if (content !== undefined && content !== null &&
       content.player_id !== null && content.player_id !== undefined) {
       player_id = content.player_id;
-      console.log("showAppInfo: player_id: " + player_id);
+      console.log("playerId: player_id: " + player_id);
     }
     if (callback !== undefined) { callback(player_id); }
   });
@@ -91,18 +101,48 @@ function playerId(callback) {
 
 function deviceId(callback) {
   // accesses "global" variables so do not use "use strict"
-  chrome.instanceID.getID(function (instanceID) {
-    if (instanceID === undefined || instanceID === null || instanceID.length === 0) {
-      if (chrome.runtime.lastError !== undefined && chrome.runtime.lastError.message !== undefined) {
-        console.log("Error: deviceId; " + chrome.runtime.lastError.message);
+  if (device_id === "") {
+    chrome.instanceID.getID(function (instanceID) {
+      if (instanceID === undefined || instanceID === null || instanceID.length === 0) {
+        if (chrome.runtime.lastError !== undefined && chrome.runtime.lastError.message !== undefined) {
+          console.log("Error: deviceId; " + chrome.runtime.lastError.message);
+        } else {
+          console.log("Error: deviceId; instanceID is not defined");
+        }
       } else {
-        console.log("Error: deviceId; instanceID is undefined");
+        device_id = instanceID;
+        console.log("deviceId: instanceID = " + instanceID.toString());
       }
+      if (callback !== undefined) { callback(instanceID); }
+    });
+  } else {
+    if (callback !== undefined) { callback(device_id); }
+  }
+}
+
+function directoryDeviceId(callback) {
+  // accesses "global" variables so do not use "use strict"
+  chrome.enterprise.deviceAttributes.getDirectoryDeviceId(function (dirDevId) {
+    if (dirDevId === undefined || dirDevId === null || dirDevId.length === 0) {
+      console.log("directoryDeviceId: Warning; dirDevId is not defined");
     } else {
-      device_id = instanceID;
-      console.log("deviceId: instanceID = " + instanceID);
+      directory_device_id = dirDevId;
+      console.log("directoryDeviceId: dirDevId = " + directory_device_id);
     }
-    if (callback !== undefined) { callback(instanceID); }
+    if (callback !== undefined) { callback(directory_device_id); }
+  });
+}
+
+function deviceSerialNumber(callback) {
+  // accesses "global" variables so do not use "use strict"
+  chrome.enterprise.deviceAttributes.getDeviceSerialNumber(function (devSerNum) {
+    if (devSerNum === undefined || devSerNum === null || devSerNum.length === 0) {
+      console.log("deviceSerialNumber: Warning; devSerNum is not defined");
+    } else {
+      device_serial_number = devSerNum;
+      console.log("deviceSerialNumber: devSerNum = " + device_serial_number);
+    }
+    if (callback !== undefined) { callback(device_serial_number); }
   });
 }
 
@@ -141,8 +181,14 @@ function setPlayerIdCookieAndLoadWebView() {
     loadWebView(device_id);
   } else {
     console.log("setPlayerIdCookieAndLoadWebView: load WebView calling deviceId");
-    deviceId(function (deviceID) {
-      loadWebView(deviceID);
+    // since device_id should be set by showAppInfo we call all the functions
+    // that get values that are used as parameters on the target url
+    directoryDeviceId(function () {
+      deviceSerialNumber(function (){
+        deviceId(function (deviceID) {
+          loadWebView(deviceID);
+        });
+      });
     });
   }
 }
@@ -155,7 +201,13 @@ function loadWebView(deviceID) {
   console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
   document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
   console.log("loadWebView: reload browser element");
-  document.getElementById("browser").setAttribute("src", "http://play.playr.biz/?player_id=" + deviceID + "&app_version=" + appVersion());
+  document.getElementById("browser").setAttribute(
+    "src",
+    "http://play.playr.biz/?player_id=" + deviceID +
+      "&app_version=" + appVersion() +
+      "&device_serial_number=" + device_serial_number +
+      "&directory_device_id=" + directory_device_id
+  );
   // document.getElementById("browser").setAttribute("src", "http://www.playr.work/play?player_id=" + deviceID + "&app_version=" + appVersion());
   // document.getElementById("browser").setAttribute("src", "http://www.bizplay.rocks:3000/play?player_id=" + deviceID + "&app_version=" + appVersion());
 }
@@ -189,7 +241,7 @@ function setupSystemInformationCycle() {
         console.log("setupSystemInformationCycle; Error: No background page found");
       }
     });
-  }, thirtySeconds);
+  }, oneMinute);
   console.log("setupSystemInformationCycle: started system information cycle: " + systemInformationHandle.toString());
 }
 

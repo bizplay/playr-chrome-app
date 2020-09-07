@@ -5,6 +5,7 @@ const threeMinutes = 3 * 60 * 1000;
 const fiveMinutes = 5 * 60 * 1000;
 const rebootCommand = "1";
 
+var device_id = "";
 var operatingSystem = "";
 var architecture = "";
 var naclArchitecture = "";
@@ -161,19 +162,24 @@ function cpuInformation(informationContainer) {
 }
 
 function deviceId(callback) {
-  "use strict";
-  chrome.instanceID.getID(function (instanceID) {
-    if (instanceID === undefined || instanceID === null || instanceID.length === 0) {
-      if (chrome.runtime.lastError !== undefined && chrome.runtime.lastError.message !== undefined) {
-        console.log("Error: deviceId; " + chrome.runtime.lastError.message);
+  // accesses "global" variables so do not use "use strict"
+  if (device_id === "") {
+    chrome.instanceID.getID(function (instanceID) {
+      if (instanceID === undefined || instanceID === null || instanceID.length === 0) {
+        if (chrome.runtime.lastError !== undefined && chrome.runtime.lastError.message !== undefined) {
+          console.log("Error: deviceId; " + chrome.runtime.lastError.message);
+        } else {
+          console.log("Error: deviceId; instanceID is undefined");
+        }
       } else {
-        console.log("Error: deviceId; instanceID is undefined");
+        device_id = instanceID;
+        console.log("deviceId: instanceID = " + instanceID.toString());
       }
-    } else {
-      console.log("deviceId: instanceID = " + instanceID.toString());
-    }
-    if (callback !== undefined) { callback(instanceID); }
-  });
+      if (callback !== undefined) { callback(instanceID); }
+    });
+  } else {
+    if (callback !== undefined) { callback(device_id); }
+  }
 }
 
 function preventUncheckedErrorMessageWhenErrorIsExpected() {
@@ -213,6 +219,6 @@ setTimeout(function () {
 console.log("Kicking off getSystemInformation interval with delay: " + (thirtySeconds/1000).toString() + " seconds");
 // accesses "global" variables so do not use "use strict"
 setTimeout(function () {
-  sysInfoIntervalHandle = setInterval(function () { getSystemInformation(); }, fifteenSeconds);
-  console.log("Repeat getSystemInformation with interval: " + (fifteenSeconds/1000).toString() + " seconds, sysInfoIntervalHandle: " + sysInfoIntervalHandle.toString());
+  sysInfoIntervalHandle = setInterval(function () { getSystemInformation(); }, fiveMinutes);
+  console.log("Repeat getSystemInformation with interval: " + (fiveMinutes/1000).toString() + " seconds, sysInfoIntervalHandle: " + sysInfoIntervalHandle.toString());
 }, thirtySeconds);
