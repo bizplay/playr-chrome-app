@@ -61,11 +61,11 @@ function setInfoInPage(networkInfo) {
 
 function networkInterfaceList(callback) {
   chrome.system.network.getNetworkInterfaces(function (networkInterfaces) {
-    console.log("showAppInfo: networkInterfaces.length: " + networkInterfaces.length.toString());
+    console.log("networkInterfaceList: networkInterfaces.length: " + networkInterfaces.length.toString());
     if (networkInterfaces !== undefined && networkInterfaces.length > 0) {
       for (var i = 0; i < networkInterfaces.length; i++) {
-        console.log("showAppInfo: networkInterfaces[" + i.toString() + "].name: " + networkInterfaces[i].name);
-        console.log("showAppInfo: networkInterfaces[" + i.toString() + "].address: " + networkInterfaces[i].address);
+        console.log("networkInterfaceList: networkInterfaces[" + i.toString() + "].name: " + networkInterfaces[i].name);
+        console.log("networkInterfaceList: networkInterfaces[" + i.toString() + "].address: " + networkInterfaces[i].address);
         if (networkInfo === networkInfoDefault) {
           if (networkInterfaces[i].address !== undefined && networkInterfaces[i].address !== null && networkInterfaces[i].address.length > 0) {
             networkInfo = "<table><tr><td>" + indent + "</td><td>" + networkInterfaces[i].name + ":</td><td>" + networkInterfaces[i].address + "</td</tr>";
@@ -105,9 +105,9 @@ function deviceId(callback) {
     chrome.instanceID.getID(function (instanceID) {
       if (instanceID === undefined || instanceID === null || instanceID.length === 0) {
         if (chrome.runtime.lastError !== undefined && chrome.runtime.lastError.message !== undefined) {
-          console.log("Error: deviceId; " + chrome.runtime.lastError.message);
+          console.log("deviceId: Error; " + chrome.runtime.lastError.message);
         } else {
-          console.log("Error: deviceId; instanceID is not defined");
+          console.log("deviceId: Error; instanceID is not defined");
         }
       } else {
         device_id = instanceID;
@@ -122,28 +122,46 @@ function deviceId(callback) {
 
 function directoryDeviceId(callback) {
   // accesses "global" variables so do not use "use strict"
-  chrome.enterprise.deviceAttributes.getDirectoryDeviceId(function (dirDevId) {
-    if (dirDevId === undefined || dirDevId === null || dirDevId.length === 0) {
-      console.log("directoryDeviceId: Warning; dirDevId is not defined");
+  // chrome.enterprise is not available unless the device is enrolled in Google device management
+  if (chrome.enterprise !== undefined) {
+    if (chrome.enterprise.deviceAttributes !== undefined && chrome.enterprise.deviceAttributes.getDirectoryDeviceId !== undefined) {
+      chrome.enterprise.deviceAttributes.getDirectoryDeviceId(function (dirDevId) {
+        if (dirDevId === undefined || dirDevId === null || dirDevId.length === 0) {
+          console.log("directoryDeviceId: Warning; dirDevId is not defined");
+        } else {
+          directory_device_id = dirDevId;
+          console.log("directoryDeviceId: dirDevId = " + directory_device_id);
+        }
+      });
     } else {
-      directory_device_id = dirDevId;
-      console.log("directoryDeviceId: dirDevId = " + directory_device_id);
+      console.log("directoryDeviceId: Error; chrome.enterprise.deviceAttributes.getDirectoryDeviceId unavailable.");
     }
-    if (callback !== undefined) { callback(directory_device_id); }
-  });
+  } else {
+    console.log("directoryDeviceId: Warning; chrome.enterprise undefined. Is this device enrolled in Google device management?");
+  }
+  if (callback !== undefined) { callback(directory_device_id); }
 }
 
 function deviceSerialNumber(callback) {
   // accesses "global" variables so do not use "use strict"
-  chrome.enterprise.deviceAttributes.getDeviceSerialNumber(function (devSerNum) {
-    if (devSerNum === undefined || devSerNum === null || devSerNum.length === 0) {
-      console.log("deviceSerialNumber: Warning; devSerNum is not defined");
+  // chrome.enterprise is not available unless the device is enrolled in Google device management
+  if (chrome.enterprise !== undefined) {
+    if (chrome.enterprise.deviceAttributes !== undefined && chrome.enterprise.deviceAttributes.getDirectoryDeviceId !== undefined) {
+      chrome.enterprise.deviceAttributes.getDeviceSerialNumber(function (devSerNum) {
+        if (devSerNum === undefined || devSerNum === null || devSerNum.length === 0) {
+          console.log("deviceSerialNumber: Warning; devSerNum is not defined");
+        } else {
+          device_serial_number = devSerNum;
+          console.log("deviceSerialNumber: devSerNum = " + device_serial_number);
+        }
+      });
     } else {
-      device_serial_number = devSerNum;
-      console.log("deviceSerialNumber: devSerNum = " + device_serial_number);
+      console.log("deviceSerialNumber: Error; chrome.enterprise.deviceAttributes.getDirectoryDeviceId unavailable.");
     }
-    if (callback !== undefined) { callback(device_serial_number); }
-  });
+  } else {
+    console.log("deviceSerialNumber: Warning; chrome.enterprise undefined. Is this device enrolled in Google device management?");
+  }
+  if (callback !== undefined) { callback(device_serial_number); }
 }
 
 function osVersion() {
@@ -200,16 +218,24 @@ function loadWebView(deviceID) {
 
   console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
   document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
-  console.log("loadWebView: reload browser element");
-  document.getElementById("browser").setAttribute(
-    "src",
-    "http://play.playr.biz/?player_id=" + deviceID +
-      "&app_version=" + appVersion() +
-      "&device_serial_number=" + device_serial_number +
-      "&directory_device_id=" + directory_device_id
-  );
+  console.log("loadWebView: reload browser element to " + srcUrl(deviceID));
+  document.getElementById("browser").setAttribute("src", srcUrl(deviceID));
+  //   "http://play.playr.biz/?player_id=" + deviceID +
+  //     "&app_version=" + appVersion() +
+  //     "&device_serial_number=" + device_serial_number +
+  //     "&directory_device_id=" + directory_device_id
+  // );
   // document.getElementById("browser").setAttribute("src", "http://www.playr.work/play?player_id=" + deviceID + "&app_version=" + appVersion());
   // document.getElementById("browser").setAttribute("src", "http://www.bizplay.rocks:3000/play?player_id=" + deviceID + "&app_version=" + appVersion());
+}
+
+function srcUrl(deviceID) {
+  // "http://www.playr.work/play?player_id="
+  // "http://www.bizplay.rocks:3000/play?player_id="
+  return  "http://play.playr.biz/?player_id=" + deviceID +
+          "&app_version=" + appVersion() +
+          "&device_serial_number=" + device_serial_number +
+          "&directory_device_id=" + directory_device_id
 }
 
 function setupWatchdogCycle() {
