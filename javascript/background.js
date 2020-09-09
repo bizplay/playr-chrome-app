@@ -167,9 +167,9 @@ function deviceId(callback) {
     chrome.instanceID.getID(function (instanceID) {
       if (instanceID === undefined || instanceID === null || instanceID.length === 0) {
         if (chrome.runtime.lastError !== undefined && chrome.runtime.lastError.message !== undefined) {
-          console.log("Error: deviceId; " + chrome.runtime.lastError.message);
+          console.log("deviceId: Error; " + chrome.runtime.lastError.message);
         } else {
-          console.log("Error: deviceId; instanceID is undefined");
+          console.log("deviceId: Error; instanceID is undefined");
         }
       } else {
         device_id = instanceID;

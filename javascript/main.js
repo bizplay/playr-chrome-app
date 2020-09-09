@@ -220,13 +220,6 @@ function loadWebView(deviceID) {
   document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
   console.log("loadWebView: reload browser element to " + srcUrl(deviceID));
   document.getElementById("browser").setAttribute("src", srcUrl(deviceID));
-  //   "http://play.playr.biz/?player_id=" + deviceID +
-  //     "&app_version=" + appVersion() +
-  //     "&device_serial_number=" + device_serial_number +
-  //     "&directory_device_id=" + directory_device_id
-  // );
-  // document.getElementById("browser").setAttribute("src", "http://www.playr.work/play?player_id=" + deviceID + "&app_version=" + appVersion());
-  // document.getElementById("browser").setAttribute("src", "http://www.bizplay.rocks:3000/play?player_id=" + deviceID + "&app_version=" + appVersion());
 }
 
 function srcUrl(deviceID) {
