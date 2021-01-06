@@ -38,15 +38,16 @@ function init() {
   });
 
   function openWindow(path){
-    chrome.system.display.getInfo(function(displayInfos){
+    chrome.system.display.getInfo(function(displayUnitInfos){
+      var relevantDisplayUnitInfo = selectRelevantDisplayUnitInfo(displayUnitInfos)
       var windowOptions = {
         "frame": "none",
         "id": "browser",
         "innerBounds": {
           "left": 0,
           "top": 0,
-          "width": displayInfos[0].bounds.width,
-          "height": displayInfos[0].bounds.height
+          "width": relevantDisplayUnitInfo.bounds.width,
+          "height": relevantDisplayUnitInfo.bounds.height
         }
       };
       chrome.app.window.create(path, windowOptions, function(createdWindow){
@@ -54,6 +55,65 @@ function init() {
         createdWindow.onClosed.addListener(windowOnClosed);
       });
     });
+  }
+}
+
+// select the info where isPrimary is true (with the highest resolution)
+// OR the info where isEnabled is true (with the highest resolution)
+function selectRelevantDisplayUnitInfo(displayUnitInfos) {
+  "use strict";
+  var i = 0;
+  var selected = [];
+
+  if (displayUnitInfos.length == 1) { return displayUnitInfos[0]; }
+
+  for (i = 0; i < displayUnitInfos.length; i += 1) {
+    if (displayUnitInfos[i].isPrimary) { selected.push(displayUnitInfos[i]); }
+  }
+  if (selected.length == 1) {
+    return selected[0];
+  } else if (selected.length > 1) {
+    selectDisplayUnitInfoWithLargestBounds(selected);
+  }
+  for (i = 0; i < displayUnitInfos.length; i += 1) {
+    if (displayUnitInfos[i].isEnabled) { selected.push(displayUnitInfos[i]); }
+  }
+  if (selected.length == 1) {
+    return selected[0];
+  } else if (selected.length > 1) {
+    selectDisplayUnitInfoWithLargestBounds(selected);
+  }
+  // default return the displayUnitInfo with the highest bounds size
+  return selectDisplayUnitInfoWithLargestBounds(displayUnitInfos);
+}
+
+// select the DisplayUnitInfo with the largest bounds.width and bounds.height
+function selectDisplayUnitInfoWithLargestBounds(displayUnitInfos) {
+  "use strict";
+  var i = 0;
+  var maxWidth = 0;
+  var maxHeight = 0;
+  var selectedByWidth = [];
+  var selectedByHeight = [];
+
+  if (displayUnitInfos.length == 1) { return displayUnitInfos[0]; }
+
+  for (i = 0; i < displayUnitInfos.length; i += 1) {
+    if (displayUnitInfos[i].bounds.width > maxWidth) { maxWidth = displayUnitInfos[i].bounds.width; }
+  }
+  for (i = 0; i < displayUnitInfos.length; i += 1) {
+    if (displayUnitInfos[i].bounds.width == maxWidth) { selectedByWidth.push(displayUnitInfos[i]); }
+  }
+  if (selectedByWidth.length == 1) {
+    return selectedByWidth[0];
+  } else {
+    for (i = 0; i < selectedByWidth.length; i += 1) {
+      if (selectedByWidth[i].bounds.height > maxHeight) { maxHeight = selectedByWidth[i].bounds.height; }
+    }
+    for (i = 0; i < selectedByWidth.length; i += 1) {
+      if (selectedByWidth[i].bounds.height == maxHeight) { selectedByHeight.push(selectedByWidth[i]); }
+    }
+    return selectedByHeight[0];
   }
 }
 
