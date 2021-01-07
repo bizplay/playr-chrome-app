@@ -213,6 +213,7 @@ function setPlayerIdCookieAndLoadWebView() {
 
 function loadWebView(deviceID) {
   "use strict";
+  allowWebViewFullScreen();
   setupWatchdogCycle();
   setupSystemInformationCycle();
 
@@ -232,12 +233,37 @@ function srcUrl(deviceID) {
           "&directory_device_id=" + directory_device_id
 }
 
+// for some reason it is not enough to get the full screen permission
+// in the manifest (which in itself should not be necessary for a Kiosk app),
+// the webview HTML element itself needs to allow the full screen event when
+// the window it is in receives a full screen request
+// Note: the fullscreen() call done in openWindow() in background.js does
+// not seem to require this action since that runs in the context of a
+// background page managed by ChromeOS only the main.html has the webview
+// element on it.
+function allowWebViewFullScreen() {
+  "use strict";
+  // alternative; document.querySelector('webview')
+  var webview = document.getElementById("browser");
+  if (webview !== undefined) {
+    console.log("allowWebViewFullScreen: adding permissionrequest event listener to webview element");
+    webview.addEventListener('permissionrequest', function(e) {
+      if (e.permission === 'fullscreen') {
+        window.console.log("webview.permissionrequest event => allow");
+        e.request.allow();
+      }
+    });
+  } else {
+    console.log("allowWebViewFullScreen: Error; webview could not be found!");
+  }
+}
+
 function ensureFullScreen() {
   "use strict";
   var currentWindow = chrome.app.window.current();
   if (currentWindow !== undefined) {
     if (!currentWindow.isFullscreen()) {
-      console.log("ensureFullScreen: Warning: current window is not full screen " + currentWindow.innerBounds().width + "x" + currentWindow.innerBounds().height + "px");
+      console.log("ensureFullScreen: Warning: current window is not full screen " + currentWindow.innerBounds.width + "x" + currentWindow.innerBounds.height + "px");
     }
     currentWindow.fullscreen();
   } else {
@@ -252,8 +278,8 @@ function setWebViewSize() {
 
   var currentWindow = chrome.app.window.current();
   if (currentWindow !== undefined) {
-    width = currentWindow.innerBounds().maxWidth || currentWindow.innerBounds().width || currentWindow.contentWindow.innerWidth;
-    height = currentWindow.innerBounds().minHeight || currentWindow.innerBounds().height|| currentWindow.contentWindow.innerHeight;
+    width = currentWindow.innerBounds.maxWidth || currentWindow.innerBounds.width || currentWindow.contentWindow.innerWidth;
+    height = currentWindow.innerBounds.minHeight || currentWindow.innerBounds.height|| currentWindow.contentWindow.innerHeight;
   } else {
     console.log("setWebViewSize: Warning: current window is not found");
     width = window.innerWidth;

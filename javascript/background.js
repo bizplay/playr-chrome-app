@@ -38,6 +38,7 @@ function init() {
   });
 
   function openWindow(path){
+    "use strict";
     chrome.system.display.getInfo(function(displayUnitInfos){
       var relevantDisplayUnitInfo = selectRelevantDisplayUnitInfo(displayUnitInfos)
       var windowOptions = {
@@ -65,6 +66,7 @@ function selectRelevantDisplayUnitInfo(displayUnitInfos) {
   var i = 0;
   var selected = [];
 
+  console.log("selectRelevantDisplayUnitInfo: number of DisplayUnitInfos = " + displayUnitInfos.length.toString());
   if (displayUnitInfos.length == 1) { return displayUnitInfos[0]; }
 
   for (i = 0; i < displayUnitInfos.length; i += 1) {
