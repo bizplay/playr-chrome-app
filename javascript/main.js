@@ -216,8 +216,9 @@ function loadWebView(deviceID) {
   setupWatchdogCycle();
   setupSystemInformationCycle();
 
-  console.log("loadWebView: resize browser to " + window.innerWidth + "x" + window.innerHeight + "px");
-  document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
+  ensureFullScreen();
+  setWebViewSize()
+
   console.log("loadWebView: reload browser element to " + srcUrl(deviceID));
   document.getElementById("browser").setAttribute("src", srcUrl(deviceID));
 }
@@ -229,6 +230,38 @@ function srcUrl(deviceID) {
           "&app_version=" + appVersion() +
           "&device_serial_number=" + device_serial_number +
           "&directory_device_id=" + directory_device_id
+}
+
+function ensureFullScreen() {
+  "use strict";
+  var currentWindow = chrome.app.window.current();
+  if (currentWindow !== undefined) {
+    if (!currentWindow.isFullscreen()) {
+      console.log("ensureFullScreen: Warning: current window is not full screen " + currentWindow.innerBounds().width + "x" + currentWindow.innerBounds().height + "px");
+    }
+    currentWindow.fullscreen();
+  } else {
+    console.log("ensureFullScreen: Error: current window is not found");
+  }
+}
+
+function setWebViewSize() {
+  "use strict";
+  var width = 1920;
+  var height = 1080;
+
+  var currentWindow = chrome.app.window.current();
+  if (currentWindow !== undefined) {
+    width = currentWindow.innerBounds().maxWidth || currentWindow.innerBounds().width || currentWindow.contentWindow.innerWidth;
+    height = currentWindow.innerBounds().minHeight || currentWindow.innerBounds().height|| currentWindow.contentWindow.innerHeight;
+  } else {
+    console.log("setWebViewSize: Warning: current window is not found");
+    width = window.innerWidth;
+    height = window.innerHeight;
+  }
+
+  console.log("setWebViewSize: resize browser to " + width + "x" + height + "px");
+  document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
 }
 
 function setupWatchdogCycle() {
