@@ -277,17 +277,21 @@ function setWebViewSize() {
   var height = 1080;
 
   var currentWindow = chrome.app.window.current();
+  // console.log("setWebViewSize: window size options:\n    window.innerWidth: " + window.innerWidth + ", window.innerHeight: " + window.innerHeight);
   if (currentWindow !== undefined) {
-    width = currentWindow.innerBounds.maxWidth || currentWindow.innerBounds.width || currentWindow.contentWindow.innerWidth;
-    height = currentWindow.innerBounds.minHeight || currentWindow.innerBounds.height|| currentWindow.contentWindow.innerHeight;
+    // console.log("    currentWindow.innerBounds.maxWidth: " + currentWindow.innerBounds.maxWidth + ", currentWindow.innerBounds.maxHeight: " + currentWindow.innerBounds.maxHeight);
+    // console.log("    currentWindow.innerBounds.width: " + currentWindow.innerBounds.width + ", currentWindow.innerBounds.height: " + currentWindow.innerBounds.height);
+    // console.log("    currentWindow.contentWindow.innerWidth: " + currentWindow.contentWindow.innerWidth + ", currentWindow.contentWindow.innerHeight: " + currentWindow.contentWindow.innerHeight);
+    width = Math.max((currentWindow.innerBounds.maxWidth || 0), (currentWindow.innerBounds.width || 0), (currentWindow.contentWindow.innerWidth || 0));
+    height = Math.max((currentWindow.innerBounds.maxHeight || 0), (currentWindow.innerBounds.height || 0), (currentWindow.contentWindow.innerHeight || 0));
   } else {
-    console.log("setWebViewSize: Warning: current window is not found");
-    width = window.innerWidth;
-    height = window.innerHeight;
+    console.log("setWebViewSize: Warning: current window is not found.");
+    width = window.innerWidth || width;
+    height = window.innerHeight || height;
   }
 
   console.log("setWebViewSize: resize browser to " + width + "x" + height + "px");
-  document.getElementById("browser").setAttribute("style", "width:" + window.innerWidth + "px;height:" + window.innerHeight + "px;");
+  document.getElementById("browser").setAttribute("style", "width:" + width + "px;height:" + height + "px;");
 }
 
 function setupWatchdogCycle() {

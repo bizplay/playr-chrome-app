@@ -41,17 +41,26 @@ function init() {
     "use strict";
     chrome.system.display.getInfo(function(displayUnitInfos){
       var relevantDisplayUnitInfo = selectRelevantDisplayUnitInfo(displayUnitInfos)
-      var windowOptions = {
-        "frame": "none",
+      // https://developer.chrome.com/docs/extensions/reference/app_window/#type-CreateWindowOptions
+      // frame: for no frame set frame to 'none' or frame.type to 'none', both default to "chrome"
+      // state: The initial state of the window, allowing it to be created already fullscreen, maximized, or minimized. Defaults to 'normal'.
+      var createWindowOptions = {
+        "frame": {
+          color: "#808080",
+          activeColor: "#808080",
+          inactiveColor: "#808080",
+          type: "chrome"
+        },
         "id": "browser",
         "innerBounds": {
           "left": 0,
           "top": 0,
           "width": relevantDisplayUnitInfo.bounds.width,
           "height": relevantDisplayUnitInfo.bounds.height
-        }
+        },
+        state: "fullscreen"
       };
-      chrome.app.window.create(path, windowOptions, function(createdWindow){
+      chrome.app.window.create(path, createWindowOptions, function(createdWindow){
         createdWindow.fullscreen();
         createdWindow.onClosed.addListener(windowOnClosed);
       });
