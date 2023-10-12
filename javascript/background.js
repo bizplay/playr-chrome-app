@@ -24,6 +24,10 @@ function init() {
   // don't let computer sleep
   chrome.power.requestKeepAwake("display");
 
+  // set mirror mode to normal; Specifies that the default source display will be mirrored to all other displays
+  // meaning that both video outputs (HDMI and DP on some models) will show the same content
+  chrome.system.display.setMirrorMode({ "mode": "normal" })
+
   // OS info is used by onUpdateAvailable no problem if this is set async
   determineOperatingSystem();
   // although the device ID should be available we check it here
