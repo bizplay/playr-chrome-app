@@ -5,11 +5,13 @@
   "description": "Digital signage kiosk app for Chrome OS",
   "app": {
     "background": {
-      "scripts": ["javascript/background.js"],
+      "scripts": [
+        "javascript/background.js"
+      ],
       "persistent": false
     }
   },
-  "version": "1.0.5.2",
+  "version": "1.1.0.0",
   "author": {
     "name": "Playr Digital Signage",
     "email": "support@playr.biz"
@@ -34,23 +36,35 @@
     "alwaysOnTopWindows",
     "gcm",
     "app.window.fullscreen",
-    "http://www.playr.biz/", "https://www.playr.biz/",
-    "http://ajax.playr.biz/", "https://ajax.playr.biz/",
-    "http://proxy.playr.biz/", "https://proxy.playr.biz/",
+    "http://www.playr.biz/",
+    "https://www.playr.biz/",
+    "http://ajax.playr.biz/",
+    "https://ajax.playr.biz/",
+    "http://proxy.playr.biz/",
+    "https://proxy.playr.biz/",
     "https://s3.amazonaws.com/",
-    "http://www.youtube.com/", "https://www.youtube.com/",
-    "http://youtu.be/","http://y2u.be/",
-    "http://www.vimeo.com/", "https://www.vimeo.com/",
-    "http://vimeo.com/", "https://vimeo.com/",
-    "http://*.yahooapis.com/","https://*.yahooapis.com/",
-    "http://*.bizplay.com/", "https://*.bizplay.com/",
-    "http://*.buienradar.com/","https://*.buienradar.nl/"
+    "http://www.youtube.com/",
+    "https://www.youtube.com/",
+    "http://youtu.be/",
+    "http://y2u.be/",
+    "http://www.vimeo.com/",
+    "https://www.vimeo.com/",
+    "http://vimeo.com/",
+    "https://vimeo.com/",
+    "http://*.yahooapis.com/",
+    "https://*.yahooapis.com/",
+    "http://*.bizplay.com/",
+    "https://*.bizplay.com/",
+    "http://*.buienradar.com/",
+    "https://*.buienradar.nl/"
   ],
   "webview": {
     "partitions": [
       {
         "name": "playr_signage_data",
-        "accessible_resources": ["*.*"]
+        "accessible_resources": [
+          "*.*"
+        ]
       }
     ]
   }
